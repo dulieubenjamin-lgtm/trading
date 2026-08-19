@@ -7,6 +7,10 @@ Support de la discussion en cours. Rien ici n'est figé.
 
 ## 1. La contrainte dure : je n'ai pas de flux de prix
 
+> **Mise à jour 19/08 — largement résolue depuis. Voir §9 et §10.**
+> Le constat ci-dessous reste vrai pour cette session *en l'état*, et explique
+> pourquoi les deux voies du §9 sont nécessaires.
+
 Testé depuis cette session, résultats vérifiés :
 
 | Source tentée | Résultat |
@@ -31,6 +35,9 @@ faisable immédiatement. C'est la seule brique manquante, et elle est bloquante
 pour l'autonomie, pas pour démarrer.
 
 ## 2. Les trois façons de me brancher au marché
+
+> **Dépassé par le §9.** Conservé parce que la grille A/B/C reste le bon cadre :
+> le MCP TradingView est un B enrichi, le connecteur Twelve Data est le C.
 
 **A — Tu es le flux.** Tu me copies les bougies OHLC depuis TradingView (export
 CSV, ou copier-coller de la fenêtre de données), ou tu m'envoies une capture.
@@ -180,7 +187,7 @@ Proposition, à ajuster :
 | Instrument | **XAUUSD** — or spot forex |
 | Périmètre de départ | **Assistant-analyste** (choix délégué, voir ci-dessous) |
 | Risque | **Standard** — 10 000 $, 1 %/trade, 3 trades/jour max, stop journalier −2 % |
-| Données | **Claude in Chrome** — à confirmer, voir §9 |
+| Données | **MCP TradingView** (local) + **connecteur Twelve Data** (distant) — voir §9 |
 
 Sur le périmètre, tu m'as laissé choisir. Je prends l'assistant-analyste, pour
 une raison précise : **on ne code pas des règles qu'on n'a pas encore testées.**
@@ -189,11 +196,103 @@ sortis de nulle part (pourquoi 0,618–0,705 ? pourquoi ADX < 20 ?). Le manuel
 d'abord sert à découvrir lesquels de ces seuils sont arbitraires. Après ~30
 trades, on saura quoi coder, et le backtest voudra dire quelque chose.
 
-Chemin prévu : **manuel (4–6 semaines) → moteur codé → dashboard**. Le
-dashboard en dernier — il donne l'impression d'un système sérieux bien avant
-qu'il y en ait un.
+Chemin prévu, **révisé après la découverte du mode replay (§10)** :
+**backtest replay (quelques séances) → papier live → moteur codé → dashboard.**
+Le replay passe devant : il élimine les mauvaises règles en jours au lieu de
+semaines. Le dashboard reste en dernier — il donne l'impression d'un système
+sérieux bien avant qu'il y en ait un.
 
-## 9. Le point Claude in Chrome
+## 9. Les deux voies d'accès aux données (mise à jour 19/08)
+
+Tu as signalé l'existence d'un MCP TradingView. Vérifié : **ça existe**, et la
+recherche a fait apparaître une seconde voie que je n'avais pas vue. Les deux
+sont complémentaires, elles ne résolvent pas le même problème.
+
+### Voie 1 — MCP TradingView (local)
+
+Il n'existe **aucun MCP officiel TradingView**. Ce sont des projets
+communautaires. Le plus complet à ce jour, `tradesdontlie/tradingview-mcp`,
+expose 78 outils et pilote l'app **TradingView Desktop** via le Chrome DevTools
+Protocol sur le port 9222.
+
+Ce qu'il donne, et qui sert directement au rulebook :
+- `data_get_study_values` → les valeurs d'indicateurs. C'est exactement ce dont
+  S1/S2/S3 ont besoin : ATR(14) M15, EMA50 M15 et H1, MACD(12,26,9), ADX(14) H1.
+  Lu par un outil, pas gratté dans du texte de page.
+- `data_get_ohlcv` → les bougies (jusqu'à ~100 barres)
+- `chart_set_symbol`, `chart_set_timeframe` → je pilote le graphique moi-même
+- `replay_start`, `replay_step`, `replay_trade` → **voir §10, c'est le point important**
+
+**Ça ne débloque pas cette session distante.** Le serveur « communique
+exclusivement avec ton instance locale de TradingView Desktop ». Il tourne sur ta
+machine, il pilote une app sur ta machine. Même conclusion que pour Claude in
+Chrome : c'est le montage **local** qui s'enrichit, pas le distant.
+
+Prérequis et points de vigilance, honnêtement :
+- TradingView **Desktop** installé, et un abonnement payant pour le temps réel
+- Projet communautaire : un serveur MCP obtient un droit d'appel d'outils sur ta
+  machine. **Lis la source avant de le lancer.**
+- Le pilotage programmatique de TradingView peut entrer en conflit avec leurs
+  conditions d'utilisation. Enjeu faible pour un usage perso en papier, mais à savoir.
+- Lancer TradingView avec `--remote-debugging-port=9222` ouvre un port de debug
+  CDP non authentifié (sur localhost). À ne pas faire sur un réseau non maîtrisé.
+- ~100 barres max : largement suffisant en M15 intraday (25h d'historique),
+  insuffisant pour un backtest pluriannuel.
+
+### Voie 2 — Connecteur Twelve Data (distant) — l'option C, résolue
+
+**Twelve Data** existe comme connecteur claude.ai hébergé. Un connecteur hébergé
+ne passe pas par le proxy réseau du conteneur : **il fonctionnerait dans cette
+session distante**, sans toucher à la configuration de l'environnement.
+
+- XAU/USD couvert, 100+ indicateurs techniques
+- Gratuit : 800 appels/jour, 8/min
+- Budget estimé : un plan de trade complet ≈ 10 appels (OHLC + ATR + EMA + MACD +
+  ADX). À 3 plans/jour plus le suivi, on est très loin du plafond.
+- **À confirmer une fois connecté** : certains fournisseurs réservent le
+  forex/matières premières aux plans payants. Je vérifierai XAU/USD dès l'activation.
+
+À activer côté claude.ai (Réglages → Connecteurs). Je ne peux pas le connecter moi-même.
+
+### Le montage résultant
+
+| Où | Voie | Ce que ça permet |
+|---|---|---|
+| Claude Code **local** | MCP TradingView | Analyse en séance, valeurs d'indicateurs exactes, **backtest replay** |
+| Session **distante** | Connecteur Twelve Data | Prix et indicateurs XAU/USD sans ta machine allumée |
+| **git** | — | Le journal, vu des deux côtés |
+
+## 10. Le mode replay change le calendrier
+
+C'est la vraie trouvaille. `replay_start` / `replay_step` / `replay_trade` donnent
+accès au **Bar Replay** de TradingView : rejouer l'historique barre par barre.
+
+J'avais annoncé que le journal n'aurait rien de statistiquement valable à dire
+avant 4 à 6 semaines, à ~2 trades/jour. Le replay lève cette contrainte : on peut
+accumuler 30 trades par setup en quelques séances, sur des données réelles.
+
+**Et le verrou anti-biais y est structurel, pas déclaratif.** En replay, je ne
+*peux pas* voir la barre suivante — le graphique s'arrête à la barre courante.
+Le plan est donc forcément écrit à l'aveugle. C'est une garantie mécanique, bien
+plus solide que la discipline de commit dans git (qu'on garde quand même).
+
+Protocole de backtest replay :
+1. Choisir une date de départ **au hasard**, jamais « une période intéressante » —
+   choisir la période, c'est déjà connaître la réponse
+2. Avancer barre par barre. Dès qu'un setup devient éligible, écrire le plan complet
+3. Commiter le plan, puis seulement avancer les barres jusqu'à l'issue
+4. Commiter le résultat, remplir le champ `manque`
+5. Répéter jusqu'à 30 trades **par setup**
+
+Coût : les 3 setups × 30 trades = 90 plans. À une dizaine de minutes par plan en
+replay, c'est quelques séances, pas 6 semaines.
+
+**Ce que ça ne remplace pas.** Le replay ne reproduit ni le spread réel, ni le
+slippage, ni surtout la pression de décider en direct. Un edge validé en replay
+reste à confirmer en papier live. L'ordre reste : replay pour **éliminer** les
+mauvaises règles vite, papier live pour **valider** ce qui a survécu.
+
+## 11. Le point Claude in Chrome (conservé pour mémoire)
 
 Tu proposes de me donner accès par Chrome. **C'est la bonne idée — mais pas
 depuis cette session.**
