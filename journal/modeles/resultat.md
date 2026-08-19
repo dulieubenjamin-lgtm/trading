@@ -30,6 +30,11 @@ Chaque écart, même favorable. Un écart qui a payé reste un écart.
 
 ## Ce que le marché a fait que le plan n'avait pas prévu
 
+## Manqué (`manque`)
+Le trade que les règles ont refusé et qui aurait payé. Champ décisif : c'est le
+seul moyen de savoir si un filtre protège ou s'il coûte plus qu'il ne rapporte.
+À remplir même les jours sans trade.
+
 ## Leçon
 Écris **« aucune »** si le trade n'apprend rien. C'est le cas le plus fréquent
 et le plus honnête. Forcer une leçon à chaque trade, c'est apprendre du bruit.

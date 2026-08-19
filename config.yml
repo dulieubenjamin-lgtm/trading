@@ -1,0 +1,51 @@
+# Configuration du compte papier — aucun argent reel.
+# Tout est stocke en UTC. Les heures locales sont derivees a l'affichage :
+# une regle ecrite en "20h Paris" se decale silencieusement de 1h au
+# changement d'heure. On ne fait pas ca.
+
+instrument: XAUUSD          # or spot forex (decide le 19/08)
+
+compte:
+  capital_initial: 10000    # USD virtuels
+  devise: USD
+
+risque:
+  par_trade_pct: 1.0        # 100 $ sur 10 000 $
+  max_trades_jour: 3
+  stop_journalier_pct: -2.0 # atteint => plus aucun trade jusqu'au lendemain
+  # La taille de position se DEDUIT de la distance au stop.
+  # Jamais l'inverse : on ne choisit pas une taille puis un stop qui l'arrange.
+
+regime: paris               # paris | bali — pilote la fenetre ET le tag des stats
+
+regimes:
+  paris:
+    tz: Europe/Paris
+    # Passe a l'heure d'hiver fin octobre : les heures UTC ci-dessous
+    # se decalent de +1h automatiquement via la tz, pas a la main.
+    ouverture_analyse: "08:00"
+    premiere_entree: "09:00"   # ouverture de Londres
+    derniere_entree: "18:00"
+    flat_obligatoire: "20:00"  # aucune exception, y compris sur un gagnant
+    sessions_couvertes: [londres, NY_ouverture]
+  bali:
+    tz: Asia/Makassar          # UTC+8, pas de changement d'heure
+    ouverture_analyse: "07:00"
+    premiere_entree: "08:00"   # ouverture de Tokyo
+    derniere_entree: "18:00"
+    flat_obligatoire: "20:00"  # = 14:00 Paris ete — on est couche avant NY
+    sessions_couvertes: [tokyo, londres]
+    # ATTENTION : ce n'est pas le meme jeu de setups qu'a Paris.
+    # S1 devient inutilisable (le range asiatique se forme pendant que tu dors
+    # a Paris, mais c'est ta session de trading a Bali).
+    # Les stats des deux regimes ne se melangent JAMAIS.
+
+setups_actifs: [S1, S2, S3]
+
+# Jalons de decision — fixes maintenant pour ne pas etre negocies plus tard,
+# quand les resultats donneront envie de deplacer les bornes.
+revue:
+  premiere_revue_apres_trades: 30
+  seuil_desactivation_setup: 20   # < 20 trades = aucune conclusion possible
+  # Un setup n'est desactive que sur >= 20 trades ET une esperance negative.
+  # Pas sur "les 5 derniers ont perdu".

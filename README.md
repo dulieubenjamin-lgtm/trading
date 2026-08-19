@@ -169,9 +169,50 @@ Proposition, à ajuster :
 - Flat à 20h00 Paris, sans exception, y compris sur un trade gagnant
 - Objectifs en R, pas en dollars
 
-## 8. Ce qui reste à trancher
+## 8. Décisions prises (19/08)
 
-1. XAUUSDT ou XAUUSD ?
-2. Quel chemin pour les données : A, B ou C (§2) ?
-3. Où on commence : assistant-analyste, moteur de règles codé, ou app avec dashboard ?
-4. Les paramètres de risque du §7 te vont-ils ?
+| Question | Décision |
+|---|---|
+| Instrument | **XAUUSD** — or spot forex |
+| Périmètre de départ | **Assistant-analyste** (choix délégué, voir ci-dessous) |
+| Risque | **Standard** — 10 000 $, 1 %/trade, 3 trades/jour max, stop journalier −2 % |
+| Données | **Claude in Chrome** — à confirmer, voir §9 |
+
+Sur le périmètre, tu m'as laissé choisir. Je prends l'assistant-analyste, pour
+une raison précise : **on ne code pas des règles qu'on n'a pas encore testées.**
+Écrire les 3 setups en code aujourd'hui, c'est figer dans un backtest des seuils
+sortis de nulle part (pourquoi 0,618–0,705 ? pourquoi ADX < 20 ?). Le manuel
+d'abord sert à découvrir lesquels de ces seuils sont arbitraires. Après ~30
+trades, on saura quoi coder, et le backtest voudra dire quelque chose.
+
+Chemin prévu : **manuel (4–6 semaines) → moteur codé → dashboard**. Le
+dashboard en dernier — il donne l'impression d'un système sérieux bien avant
+qu'il y en ait un.
+
+## 9. Le point Claude in Chrome
+
+Tu proposes de me donner accès par Chrome. **C'est la bonne idée — mais pas
+depuis cette session.**
+
+- Cette session tourne dans un conteneur isolé, dans le cloud. Elle ne peut pas
+  atteindre le Chrome de ta machine. Vérifié : les outils `claude-in-chrome` ne
+  sont pas exposés ici.
+- Même le Chromium installé dans le conteneur ne sert à rien : `tradingview.com`
+  est bloqué par la politique réseau, comme les autres.
+
+En revanche, ton `.claude/settings.json` autorise déjà `claude-in-chrome`
+(`read_page`, `get_page_text`, `find`…). Donc tu l'utilises quand **Claude Code
+tourne en local sur ton Mac** — et là, ça marche : je lis l'onglet TradingView,
+la fenêtre de données, les valeurs d'indicateurs, le prix courant.
+
+**Le bon montage :**
+
+| Où | Quoi |
+|---|---|
+| Claude Code **en local** (dossier Quete-Vefa) | Lecture TradingView via Chrome, plans de trade, post-mortems en séance |
+| Cette session **distante** | Conception, rulebook, statistiques, code — tout ce qui ne demande pas le marché en direct |
+| **git** | Le lien entre les deux : le journal est versionné, les deux côtés le voient |
+
+Limite honnête : lire l'onglet donne le prix courant et la fenêtre de données,
+pas un historique complet. Pour backtester il faudra l'export CSV de TradingView
+(plans payants) ou l'option C. Pour des plans en séance, lire l'onglet suffit.
