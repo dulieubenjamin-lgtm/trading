@@ -39,7 +39,7 @@ signaux évités, on supprime la condition de retest.
   depuis l'entrée. Si la distance dépasse **2,5 × ATR M15 → trade refusé**.
 - **TP1** : 1R → on sort la moitié, stop à break-even
 - **TP2** : `high_range + amplitude_range`, ou 2R si plus proche
-- **Flat** : 20h00 Paris, sans exception
+- **Flat** : 22h00 Paris (16h ET), sans exception
 
 ## Invalidation avant entrée
 

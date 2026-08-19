@@ -25,15 +25,27 @@ regimes:
     # se decalent de +1h automatiquement via la tz, pas a la main.
     ouverture_analyse: "08:00"
     premiere_entree: "09:00"   # ouverture de Londres
-    derniere_entree: "18:00"
-    flat_obligatoire: "20:00"  # aucune exception, y compris sur un gagnant
-    sessions_couvertes: [londres, NY_ouverture]
+    derniere_entree: "18:00"   # volontairement INCHANGE — voir note ci-dessous
+    flat_obligatoire: "22:00"  # = 16:00 ET, aucune exception, y compris sur un gagnant
+    sessions_couvertes: [londres, NY]
+    # Le passage de 20h a 22h allonge la duree de vie des trades ouverts,
+    # il n'ouvre PAS une fenetre d'entree supplementaire. La derniere entree
+    # reste a 18h : une entree a 21h arriverait apres 13h d'ecran, et c'est
+    # la que la discipline lache. L'interet de 22h est de laisser TP2 se faire
+    # pendant l'apres-midi US, pas de prendre plus de trades.
+    # PLAFOND DUR : ne jamais pousser au-dela de 22h30. La bougie journaliere
+    # forex cloture a 23h00 Paris (17h ET) et les spreads sur l'or s'ecartent
+    # nettement dans l'heure qui precede le rollover.
   bali:
     tz: Asia/Makassar          # UTC+8, pas de changement d'heure
     ouverture_analyse: "07:00"
     premiere_entree: "08:00"   # ouverture de Tokyo
-    derniere_entree: "18:00"
+    derniere_entree: "17:00"   # 3h de marge avant le flat, comme a Paris
     flat_obligatoire: "20:00"  # = 14:00 Paris ete — on est couche avant NY
+    # Le flat NE PASSE PAS a 22h ici, contrairement a Paris : New York ouvre a
+    # 21h30 WITA. Etre encore en position a 22h WITA, c'est se faire sortir de
+    # force 30 min apres le moment le plus volatil de la journee. On reste flat
+    # AVANT l'ouverture NY. C'est la derniere entree qui recule, pas le flat.
     sessions_couvertes: [tokyo, londres]
     # ATTENTION : ce n'est pas le meme jeu de setups qu'a Paris.
     # S1 devient inutilisable (le range asiatique se forme pendant que tu dors

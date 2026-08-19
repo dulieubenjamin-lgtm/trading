@@ -116,11 +116,15 @@ Heures d'août (Paris = UTC+2, Bali = UTC+8, sans changement d'heure) :
 | Chiffres US (NFP/CPI) | 12:30 | 14:30 | 20:30 |
 | **Ouverture NY / COMEX** | 13:30 | 15:30 | 21:30 |
 | Fixing Londres PM | 14:00 | 16:00 | 22:00 |
-| Ton flat obligatoire | 18:00 | **20:00** | **02:00 — en pleine nuit** |
+| Clôture NY / rollover journalier | 21:00 | 23:00 | 05:00 |
+| Ton flat obligatoire | 20:00 | **22:00** | **04:00 — en pleine nuit** |
 
-À Paris, ta journée 08h–20h te donne **Londres + l'ouverture de New York**.
-À Bali, la même journée 08h–20h te donne **Tokyo + Londres**, et tu te couches
+À Paris, ta journée 08h–22h te donne **Londres + la quasi-totalité de New York**.
+À Bali, ta journée 08h–20h te donne **Tokyo + Londres**, et tu te couches
 juste avant l'ouverture de New York.
+
+L'extension à 22h **creuse l'écart** entre les deux régimes au lieu de le réduire :
+à Paris tu gagnes tout l'après-midi américain, à Bali tu ne l'auras jamais.
 
 Autrement dit : la contrainte « pas de trade la nuit » produit **deux stratégies
 différentes** selon où tu dors. Les setups qui marchent à Paris (impulsion NY,
@@ -166,7 +170,7 @@ Proposition, à ajuster :
 - Risque par trade : 1 % (100 $) — la taille se déduit du SL, jamais l'inverse
 - Maximum 3 trades / jour
 - Stop journalier : −2 % → on arrête, on ne « se refait » pas
-- Flat à 20h00 Paris, sans exception, y compris sur un trade gagnant
+- Dernière entrée 18h00 Paris — flat à 22h00 Paris, sans exception, y compris sur un gagnant
 - Objectifs en R, pas en dollars
 
 ## 8. Décisions prises (19/08)

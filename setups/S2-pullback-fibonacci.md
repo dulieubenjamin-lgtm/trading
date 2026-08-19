@@ -34,7 +34,7 @@ renversement, et on serait du mauvais côté.
 - **SL** : au-delà du 0,786 de l'impulsion, minimum 1,0 × ATR M15
 - **TP1** : retour à l'extrême de l'impulsion (le 0,0) → généralement 1,5–2R
 - **TP2** : extension 1,272
-- **Flat** : 20h00 Paris
+- **Flat** : 22h00 Paris (16h ET)
 
 ## Invalidation avant entrée
 

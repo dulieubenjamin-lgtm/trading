@@ -27,7 +27,7 @@ filtre ADX ci-dessous n'est pas décoratif, il est la condition d'existence du s
 - **SL** : au-delà de l'extrême de la divergence, minimum 1,0 × ATR M15
 - **TP1** : **1R strict** — en contre-tendance on encaisse vite
 - **TP2** : milieu du range du jour
-- **Flat** : 20h00 Paris
+- **Flat** : 22h00 Paris (16h ET)
 - **Maximum 1 trade S3 par jour**
 
 ## Invalidation avant entrée
