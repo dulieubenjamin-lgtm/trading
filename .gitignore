@@ -1,0 +1,10 @@
+# Bytecode Python : artefact, regenere a chaque execution.
+__pycache__/
+*.pyc
+
+# Le cache de bougies EST versionne, volontairement : le harnais ne lit que lui,
+# et un backtest doit etre reproductible a l'identique. Ne pas l'ignorer.
+
+# Cle API : elle se lit dans l'environnement, jamais dans un fichier.
+.env
+*.key
