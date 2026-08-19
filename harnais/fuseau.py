@@ -25,15 +25,20 @@ class FuseauIncoherent(RuntimeError):
     """Le decalage observe ne correspond pas au calendrier forex."""
 
 
-def etiquette_vers_utc(etiquette: str) -> datetime:
-    """'2026-08-15 07:00:00' (heure Sydney) -> datetime UTC aware."""
+def etiquette_vers_utc(etiquette: str, fuseau: str = "Australia/Sydney") -> datetime:
+    """'2026-08-15 07:00:00' dans `fuseau` -> datetime UTC aware.
+
+    Le fuseau est un PARAMETRE, jamais une constante enfouie : les caches
+    produits par outils/telecharger.py demandent explicitement UTC a l'API,
+    ceux constitues via le connecteur MCP heritent du defaut Sydney.
+    """
     naif = datetime.fromisoformat(etiquette.strip())
     if naif.tzinfo is not None:
         raise ValueError(f"etiquette deja localisee, inattendu : {etiquette!r}")
     # fold=0 : lors du recul d'heure d'avril a Sydney, l'heure ambigue est lue
     # comme la premiere occurrence. Ces creneaux tombent un dimanche matin
     # heure locale, donc marche ferme — ils seront filtres comme synthetiques.
-    return naif.replace(tzinfo=SYDNEY, fold=0).astimezone(ZoneInfo("UTC"))
+    return naif.replace(tzinfo=ZoneInfo(fuseau), fold=0).astimezone(ZoneInfo("UTC"))
 
 
 def heure_ambigue(etiquette: str) -> bool:

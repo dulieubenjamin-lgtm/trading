@@ -16,6 +16,11 @@ from .fuseau import etiquette_vers_utc, heure_ambigue
 
 EN_TETE = "datetime;open;high;low;close"
 
+# Fuseau par defaut si le cache ne le declare pas : c'est ce que l'API renvoie
+# quand on ne lui demande rien (constate, pas suppose). Les caches produits par
+# outils/telecharger.py declarent "# timezone: UTC" en premiere ligne.
+FUSEAU_PAR_DEFAUT = "Australia/Sydney"
+
 
 def charger(chemin: str | Path) -> list[Bougie]:
     """Lit un CSV de cache et renvoie les bougies TRIEES par temps croissant.
@@ -27,6 +32,14 @@ def charger(chemin: str | Path) -> list[Bougie]:
     lignes = Path(chemin).read_text(encoding="utf-8").strip().splitlines()
     if not lignes:
         raise ValueError(f"cache vide : {chemin}")
+
+    fuseau = FUSEAU_PAR_DEFAUT
+    if lignes[0].startswith("#"):
+        marqueur = lignes[0].lstrip("# ").strip()
+        if marqueur.startswith("timezone:"):
+            fuseau = marqueur.split(":", 1)[1].strip()
+        lignes = lignes[1:]
+
     if lignes[0].strip() != EN_TETE:
         raise ValueError(f"en-tete inattendu dans {chemin} : {lignes[0]!r}")
 
@@ -35,10 +48,11 @@ def charger(chemin: str | Path) -> list[Bougie]:
         if not ligne.strip():
             continue
         etiquette, o, h, b, c = ligne.split(";")
-        if heure_ambigue(etiquette):
+        if fuseau != "UTC" and heure_ambigue(etiquette):
             ambigues.append(etiquette)
         bougies.append(
-            Bougie(etiquette_vers_utc(etiquette), float(o), float(h), float(b), float(c))
+            Bougie(etiquette_vers_utc(etiquette, fuseau),
+                   float(o), float(h), float(b), float(c))
         )
 
     if ambigues:
