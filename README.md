@@ -319,3 +319,28 @@ la fenêtre de données, les valeurs d'indicateurs, le prix courant.
 Limite honnête : lire l'onglet donne le prix courant et la fenêtre de données,
 pas un historique complet. Pour backtester il faudra l'export CSV de TradingView
 (plans payants) ou l'option C. Pour des plans en séance, lire l'onglet suffit.
+
+---
+
+## Ce dépôt
+
+Projet autonome. Il a d'abord vécu dans un workspace qui n'était pas le sien ;
+son historique complet a été extrait par `git subtree split`, d'où les neuf
+premiers commits préfixés `trading-ia`.
+
+```
+README.md              <-- ce cahier des charges
+config.yml             <-- compte papier, risque, fenêtres de séance
+setups/                <-- le rulebook, et ruptures.md : ce que le code a cassé
+harnais/               <-- le backtest walk-forward (stdlib pur, aucune dépendance)
+outils/telecharger.py  <-- alimente le cache depuis l'API Twelve Data
+journal/modeles/       <-- gabarits de plan et de post-mortem
+donnees/cache/         <-- les bougies. Versionné : le backtest doit être reproductible
+```
+
+```bash
+python3 harnais/tests/test_donnees.py   # couche données, sur bougies réelles
+python3 harnais/tests/test_setups.py    # setups et moteur, sur scénario construit
+```
+
+Aucune dépendance à installer : Python 3.11+ et rien d'autre.

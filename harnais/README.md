@@ -35,7 +35,8 @@ le mode replay de TradingView garantit par construction.
 ## Tests
 
 ```bash
-cd trading-ia && python3 harnais/tests/test_donnees.py
+python3 harnais/tests/test_donnees.py
+python3 harnais/tests/test_setups.py
 ```
 
 Les fixtures sont de **vraies bougies Twelve Data**, choisies de part et d'autre
