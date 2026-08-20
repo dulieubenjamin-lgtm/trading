@@ -36,6 +36,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 BASE = "https://api.twelvedata.com/time_series"
+BASE_DEBUT = "https://api.twelvedata.com/earliest_timestamp"
 SYMBOLE = "XAU/USD"
 MAX_POINTS = 5000          # plafond par requete, plan gratuit
 MINUTES = {"5min": 5, "15min": 15, "1h": 60}
@@ -64,6 +65,30 @@ def contexte_ssl() -> ssl.SSLContext:
         return ssl.create_default_context(cafile=certifi.where())
     except ImportError:
         return ssl.create_default_context()
+
+
+def profondeur_disponible(cle: str, intervalle: str):
+    """Date de la plus ancienne bougie que le plan donne pour cet intervalle.
+
+    Un controle prealable a une requete, plutot que 78 requetes pour decouvrir
+    que le plan gratuit ne remonte pas si loin. Renvoie None si l'API ne repond
+    pas — on tente alors le telechargement plutot que de bloquer sur un doute.
+    """
+    params = urllib.parse.urlencode(
+        {"symbol": SYMBOLE, "interval": intervalle, "apikey": cle})
+    try:
+        with urllib.request.urlopen(f"{BASE_DEBUT}?{params}", timeout=30,
+                                    context=contexte_ssl()) as r:
+            detail = json.loads(r.read().decode("utf-8"))
+    except Exception:
+        return None
+    horodatage = detail.get("datetime")
+    if not horodatage:
+        return None
+    try:
+        return datetime.fromisoformat(horodatage).replace(tzinfo=timezone.utc)
+    except ValueError:
+        return None
 
 
 def pas_jours(intervalle: str) -> int:
@@ -145,7 +170,7 @@ def main() -> int:
     nom = {"5min": "M5", "15min": "M15", "1h": "H1"}[args.intervalle]
     cible = Path(args.sortie or f"donnees/cache/XAUUSD-{nom}.csv")
     cible.parent.mkdir(parents=True, exist_ok=True)
-    print(f"{SYMBOLE} {args.intervalle} sur {args.mois} mois -> {cible}")
+    print(f"{SYMBOLE} {args.intervalle} -> {cible}")
 
     lignes: dict[str, str] = {}
     if cible.exists():
@@ -154,8 +179,22 @@ def main() -> int:
                 lignes[l.split(";")[0]] = l
     avant = len(lignes)
 
+    debut_dispo = profondeur_disponible(cle, args.intervalle)
+    mois = args.mois
+    if debut_dispo is not None:
+        jours = (datetime.now(timezone.utc) - debut_dispo).days
+        print(f"profondeur offerte par ton plan : depuis {debut_dispo:%Y-%m-%d} "
+              f"({jours // 30} mois)")
+        if jours // 30 < mois:
+            mois = max(1, jours // 30)
+            print(f"demande ramenee de {args.mois} a {mois} mois — inutile de "
+                  f"payer des requetes pour des periodes que l'API ne sert pas")
+    else:
+        print("profondeur disponible inconnue (l'API n'a pas repondu) — "
+              "on tente la demande telle quelle")
+
     reussies = 0
-    tranches = list(fenetres(args.mois, args.intervalle))
+    tranches = list(fenetres(mois, args.intervalle))
     print(f"{len(tranches)} requetes de {pas_jours(args.intervalle)} jours, "
           f"~{PAUSE * (len(tranches) - 1):.0f} s")
     echecs_ssl = 0
