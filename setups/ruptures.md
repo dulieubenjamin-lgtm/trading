@@ -600,3 +600,45 @@ Trois protections ont chacune renversé une conclusion :
 
 Aucune n'est optionnelle. Sans elles, cette recherche aurait produit un système
 d'apparence excellente, et faux.
+
+## GG. L'objectif : 1R est PIRE que 2R, et le taux de réussite est un piège
+
+Test de six objectifs sur la population entière, témoin apparié par sens **et**
+par objectif.
+
+| objectif | R moyen du témoin | réussite du témoin | z médian des candidats | candidats z > 0 |
+|---|---|---|---|---|
+| 0,50 R | −0,113 | **62,6 %** | **−1,31** | 11 % |
+| 0,75 R | −0,121 | 53,2 % | −1,04 | 17 % |
+| 1,00 R | −0,121 | 46,7 % | **−0,79** | 16 % |
+| 1,50 R | −0,120 | 38,6 % | −0,71 | 23 % |
+| 2,00 R | −0,125 | 33,6 % | **−0,65** | 26 % |
+| 3,00 R | −0,086 | 29,9 % | −0,67 | **29 %** |
+
+**Resserrer l'objectif dégrade la performance relative, de façon monotone.**
+Passer de 2R à 1R fait tomber le z médian de −0,65 à −0,79, et la proportion de
+candidats battant le hasard de 26 % à 16 %.
+
+### Pourquoi
+
+L'information portée par les indicateurs vit dans **la queue du mouvement**, pas
+près de l'entrée. La mesure d'excursion (§DD) le montrait déjà : excursion
+favorable de 4,0 ATR contre 3,1 adverse. Resserrer l'objectif monétise la partie
+de la distribution où ils n'ont aucun avantage, tout en continuant d'encaisser
+des stops entiers. On coupe les gains et on garde les pertes.
+
+### Le taux de réussite est achetable, et il ne vaut rien
+
+Le témoin **purement aléatoire** affiche **62,6 % de réussite à 0,5R** — pour
+−0,113 R par trade. Un système à 62 % de réussite qui perd de l'argent, produit
+par des entrées au hasard.
+
+C'est la réponse définitive à l'objectif « 55-60 % de réussite » : ce taux
+s'obtient à volonté en resserrant l'objectif, et c'est précisément le réglage où
+l'espérance est la pire. **Le taux de réussite ne mesure rien** tant qu'on ne
+donne pas le ratio gain/perte avec — et une fois qu'on le donne, il n'apporte
+plus d'information que l'espérance ne contienne déjà.
+
+Si une direction existe, c'est donc vers des objectifs **plus larges**, pas plus
+serrés. La tendance est monotone jusqu'à 3R (29 % de candidats au-dessus du
+hasard) — mais elle n'atteint jamais la parité de 50 %.
