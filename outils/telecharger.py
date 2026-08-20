@@ -27,6 +27,7 @@ import argparse
 import getpass
 import json
 import os
+import ssl
 import sys
 import time
 import urllib.parse
@@ -40,6 +41,25 @@ INTERVALLE = "15min"
 MAX_POINTS = 5000          # plafond par requete, plan gratuit
 PAUSE = 8.0                # 8 requetes/min sur le plan gratuit -> 1 toutes les 8 s
 EN_TETE = "datetime;open;high;low;close"
+
+
+def contexte_ssl() -> ssl.SSLContext:
+    """Contexte TLS avec une autorite de certification utilisable.
+
+    Sur macOS, le Python de python.org et celui des Command Line Tools
+    n'utilisent PAS le trousseau systeme : sans intervention, toute requete
+    HTTPS echoue en CERTIFICATE_VERIFY_FAILED. On s'appuie donc sur le paquet
+    `certifi` quand il est present, sur le magasin par defaut sinon.
+
+    On ne desactive JAMAIS la verification : ce serait accepter n'importe quel
+    certificat, donc n'importe quel intermediaire, sur une connexion qui
+    transporte une cle API.
+    """
+    try:
+        import certifi
+        return ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        return ssl.create_default_context()
 
 
 def fenetres(mois: int):
@@ -66,7 +86,8 @@ def tirer(cle: str, debut: datetime, fin: datetime) -> list[str]:
         "delimiter": ";",
         "apikey": cle,
     })
-    with urllib.request.urlopen(f"{BASE}?{params}", timeout=60) as r:
+    with urllib.request.urlopen(f"{BASE}?{params}", timeout=60,
+                                context=contexte_ssl()) as r:
         corps = r.read().decode("utf-8")
 
     if corps.lstrip().startswith("{"):        # l'API renvoie du JSON en cas d'erreur
@@ -116,12 +137,15 @@ def main() -> int:
     avant = len(lignes)
 
     tranches = list(fenetres(args.mois))
+    echecs_ssl = 0
     for n, (debut, fin) in enumerate(tranches, 1):
         print(f"[{n}/{len(tranches)}] {debut:%Y-%m-%d} -> {fin:%Y-%m-%d} ...", end=" ", flush=True)
         try:
             recues = tirer(cle, debut, fin)
         except Exception as e:
             print(f"ECHEC : {e}")
+            if "CERTIFICATE_VERIFY_FAILED" in str(e):
+                echecs_ssl += 1
             continue
         for l in recues:
             lignes[l.split(";")[0]] = l
@@ -129,13 +153,26 @@ def main() -> int:
         if n < len(tranches):
             time.sleep(PAUSE)
 
+    if echecs_ssl:
+        print("\nAucun certificat racine utilisable pour ce Python.")
+        print("Sur macOS, Python n'utilise pas le trousseau systeme. Corrige avec :")
+        print("\n    pip3 install --upgrade certifi\n")
+        print("puis relance. Si pip3 est introuvable : python3 -m pip install --upgrade certifi")
+        return 3
+
+    if not lignes:
+        # Ne rien ecrire plutot que de produire un cache vide : un fichier a
+        # zero bougie ferait echouer le harnais bien plus loin, sur un message
+        # sans rapport avec la vraie cause.
+        print("\nAucune bougie recuperee — le cache n'est pas ecrit.")
+        return 1
+
     ordonnees = [lignes[k] for k in sorted(lignes)]
     cible.write_text(
         "\n".join(["# timezone: UTC", EN_TETE] + ordonnees) + "\n", encoding="utf-8")
 
     print(f"\n{cible} : {avant} -> {len(lignes)} bougies (+{len(lignes) - avant})")
-    if ordonnees:
-        print(f"couverture : {ordonnees[0].split(';')[0]} -> {ordonnees[-1].split(';')[0]} UTC")
+    print(f"couverture : {ordonnees[0].split(';')[0]} -> {ordonnees[-1].split(';')[0]} UTC")
     print("\nCommiter ce fichier : c'est la seule source du harnais.")
     return 0
 
