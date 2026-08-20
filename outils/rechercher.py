@@ -109,16 +109,29 @@ def main() -> int:
 
     print("TEMOIN ALEATOIRE — a quoi ressemble « aucun edge » dans cette machinerie")
     temoins = evaluer(specs_temoin(), *FENETRES["recherche"], "recherche")
-    ts = sorted(v["t"] for v in temoins.values())
     rs = sorted(v["r_moyen"] for v in temoins.values())
-    if ts:
-        print(f"   {len(ts)} temoins evalues")
-        print(f"   t        : min {ts[0]:+.2f}  median {ts[len(ts)//2]:+.2f}  "
-              f"max {ts[-1]:+.2f}")
-        print(f"   R moyen  : min {rs[0]:+.3f}  median {rs[len(rs)//2]:+.3f}  "
-              f"max {rs[-1]:+.3f}")
-        print(f"   => un candidat doit depasser t = {ts[-1]:+.2f} pour seulement "
-              f"egaler le meilleur pur hasard")
+    reussites = sorted(v["reussite"] for v in temoins.values())
+    if not rs:
+        print("   aucun temoin exploitable")
+        return 1
+    moy_t = sum(rs) / len(rs)
+    sd_t = (sum((x - moy_t) ** 2 for x in rs) / (len(rs) - 1)) ** 0.5
+    print(f"   {len(rs)} temoins evalues")
+    print(f"   R moyen   : min {rs[0]:+.3f}  median {rs[len(rs)//2]:+.3f}  "
+          f"max {rs[-1]:+.3f}")
+    print(f"   moyenne {moy_t:+.3f}, ecart-type {sd_t:.3f}")
+    print(f"   reussite  : median {reussites[len(reussites)//2]:.1f} % "
+          f"(seuil theorique de rentabilite a 2R : 33,3 %)")
+    print()
+    print("   TOUS LES TEMOINS SONT NEGATIFS. Ce n'est pas du bruit autour de zero,")
+    print("   c'est le cout de la machinerie : spread preleve des deux cotes, stop")
+    print("   privilegie en cas d'ambiguite intra-bougie, sorties forcees a 12 h.")
+    print(f"   Avec un stop a 1,5 x ATR M15, l'aller-retour de spread pese ~12 %")
+    print("   du risque, soit l'essentiel de l'ecart.")
+    print()
+    print(f"   => LE POINT DE COMPARAISON N'EST PAS ZERO, C'EST {moy_t:+.3f} R.")
+    print("   Chaque candidat est donc note en ecarts-types au-dessus du temoin (z),")
+    print("   et non par rapport a zero.")
     print()
 
     survivants = specs
@@ -135,8 +148,10 @@ def main() -> int:
               f"{len(assez_frequents)} atteignent le seuil de frequence "
               f"({TRADES_MINIMUM} trades)")
 
-        positifs = {k: v for k, v in assez_frequents.items() if v["r_moyen"] > 0}
-        print(f"   {len(positifs)} a esperance positive\n")
+        for v in assez_frequents.values():
+            v["z_temoin"] = (v["r_moyen"] - moy_t) / sd_t if sd_t else 0.0
+        positifs = {k: v for k, v in assez_frequents.items() if v["z_temoin"] > 1.0}
+        print(f"   {len(positifs)} depassent le temoin d'au moins 1 ecart-type\n")
 
         noms = {k[0] for k in positifs}
         survivants = [s for s in specs if s["nom"] in noms]
@@ -157,14 +172,17 @@ def main() -> int:
               f"totale d'edge)")
 
     derniere = etapes[-1] if etapes[-1] in resultats else list(resultats)[-1]
-    classement = sorted(resultats[derniere].items(),
-                        key=lambda kv: -kv[1]["t"])[:15]
+    classement = sorted(
+        resultats[derniere].items(),
+        key=lambda kv: -(kv[1].get("z_temoin",
+                                   (kv[1]["r_moyen"] - moy_t) / sd_t if sd_t else 0.0)))[:15]
     print(f"\nMEILLEURS a l'etape « {derniere} » (attention : classement = selection)")
-    print(f"   {'setup':<34}{'sens':<7}{'n':>5}{'reuss.':>8}{'R moy':>9}"
-          f"{'t':>7}{'/jour':>7}")
+    print(f"   {'setup':<32}{'sens':<7}{'n':>5}{'reuss.':>8}{'R moy':>9}"
+          f"{'z/temoin':>10}{'/jour':>7}")
     for (nom, sens), v in classement:
-        print(f"   {nom[:33]:<34}{sens:<7}{v['n']:>5}{v['reussite']:>7.1f}%"
-              f"{v['r_moyen']:>+9.3f}{v['t']:>7.2f}{v['trades_par_jour']:>7.2f}")
+        z = v.get("z_temoin", (v["r_moyen"] - moy_t) / sd_t if sd_t else 0.0)
+        print(f"   {nom[:31]:<32}{sens:<7}{v['n']:>5}{v['reussite']:>7.1f}%"
+              f"{v['r_moyen']:>+9.3f}{z:>+10.2f}{v['trades_par_jour']:>7.2f}")
 
     Path("resultats").mkdir(exist_ok=True)
     Path("resultats/recherche.json").write_text(

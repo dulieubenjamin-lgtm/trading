@@ -1,0 +1,62 @@
+[
+ {"nom":"rsi-survente-tendance-h4","famille":"reversion","sens":"les_deux","tp_r":2.0,
+  "conditions":[{"gauche":{"ind":"rsi","ut":"M15","params":[14]},"op":"<","droite":{"const":35}},
+                {"gauche":{"prix":"cloture"},"op":">","droite":{"ind":"ema","ut":"H4","params":[50]}}],
+  "stop":{"type":"atr","ut":"M15","mult":1.5}},
+
+ {"nom":"donchian-cassure-20","famille":"canaux","sens":"les_deux","tp_r":2.0,
+  "conditions":[{"gauche":{"prix":"cloture"},"op":">","droite":{"ind":"donchian_haut","ut":"M15","params":[20]}},
+                {"gauche":{"ind":"adx","ut":"H4","params":[14]},"op":">","droite":{"const":20}}],
+  "stop":{"type":"atr","ut":"M15","mult":1.5}},
+
+ {"nom":"bollinger-retour-bande","famille":"reversion","sens":"les_deux","tp_r":2.0,
+  "conditions":[{"gauche":{"prix":"bas"},"op":"<","droite":{"ind":"bb_bas","ut":"M15","params":[20,2.0]}},
+                {"gauche":{"ind":"adx","ut":"H4","params":[14]},"op":"<","droite":{"const":25}}],
+  "stop":{"type":"atr","ut":"M15","mult":1.5}},
+
+ {"nom":"compression-atr-expansion","famille":"expansion","sens":"les_deux","tp_r":2.0,
+  "conditions":[{"gauche":{"ind":"atr_relatif","ut":"M15","params":[14,100]},"op":"<","droite":{"const":0.85}},
+                {"gauche":{"prix":"cloture"},"op":">","droite":{"ind":"donchian_haut","ut":"M15","params":[12]}}],
+  "stop":{"type":"atr","ut":"M15","mult":1.2}},
+
+ {"nom":"keltner-exces","famille":"reversion","sens":"les_deux","tp_r":2.0,
+  "conditions":[{"gauche":{"prix":"bas"},"op":"<","droite":{"ind":"keltner_bas","ut":"M15","params":[20,1.5]}},
+                {"gauche":{"ind":"rsi","ut":"H4","params":[14]},"op":"<","droite":{"const":45}}],
+  "stop":{"type":"atr","ut":"M15","mult":1.5}},
+
+ {"nom":"pullback-ema-tendance","famille":"suivi_tendance","sens":"les_deux","tp_r":2.0,
+  "conditions":[{"gauche":{"prix":"cloture"},"op":">","droite":{"ind":"ema","ut":"H4","params":[50]}},
+                {"gauche":{"prix":"bas"},"op":"<","droite":{"ind":"ema","ut":"M15","params":[20]}},
+                {"gauche":{"ind":"rsi","ut":"M15","params":[14]},"op":"<","droite":{"const":45}}],
+  "stop":{"type":"atr","ut":"M15","mult":1.5}},
+
+ {"nom":"stochastique-croisement-h4","famille":"oscillateurs","sens":"les_deux","tp_r":2.0,
+  "conditions":[{"gauche":{"ind":"stoch_k","ut":"M15","params":[14,3]},"op":"croise_haut","droite":{"ind":"stoch_d","ut":"M15","params":[14,3]}},
+                {"gauche":{"ind":"stoch_k","ut":"H4","params":[14,3]},"op":"<","droite":{"const":40}}],
+  "stop":{"type":"atr","ut":"M15","mult":1.5}},
+
+ {"nom":"position-range-extreme","famille":"asymetrie","sens":"les_deux","tp_r":2.0,
+  "conditions":[{"gauche":{"ind":"position_range","ut":"M15","params":[48]},"op":"<","droite":{"const":0.15}},
+                {"gauche":{"ind":"asymetrie","ut":"M5"},"op":">","droite":{"const":0.3}}],
+  "stop":{"type":"atr","ut":"M15","mult":1.5}},
+
+ {"nom":"cci-exces-filtre","famille":"oscillateurs","sens":"les_deux","tp_r":2.0,
+  "conditions":[{"gauche":{"ind":"cci","ut":"M15","params":[20]},"op":"<","droite":{"const":-120}},
+                {"gauche":{"ind":"adx","ut":"H4","params":[14]},"op":"<","droite":{"const":25}}],
+  "stop":{"type":"atr","ut":"M15","mult":1.5}},
+
+ {"nom":"macd-croisement-tendance","famille":"suivi_tendance","sens":"les_deux","tp_r":2.0,
+  "conditions":[{"gauche":{"ind":"macd","ut":"M15","params":[12,26,9]},"op":"croise_haut","droite":{"ind":"macd_signal","ut":"M15","params":[12,26,9]}},
+                {"gauche":{"prix":"cloture"},"op":">","droite":{"ind":"ema","ut":"H4","params":[50]}}],
+  "stop":{"type":"atr","ut":"M15","mult":1.5}},
+
+ {"nom":"zscore-etirement","famille":"reversion","sens":"les_deux","tp_r":2.0,
+  "conditions":[{"gauche":{"ind":"zscore","ut":"M15","params":[40]},"op":"<","droite":{"const":-2.0}},
+                {"gauche":{"ind":"atr_relatif","ut":"M15","params":[14,100]},"op":"<","droite":{"const":1.1}}],
+  "stop":{"type":"atr","ut":"M15","mult":1.5}},
+
+ {"nom":"bougie-exceptionnelle-suite","famille":"asymetrie","sens":"les_deux","tp_r":2.0,
+  "conditions":[{"gauche":{"ind":"taille_relative","ut":"M15","params":[14]},"op":">","droite":{"const":2.0}},
+                {"gauche":{"prix":"cloture"},"op":">","droite":{"ind":"ema","ut":"M15","params":[20]}}],
+  "stop":{"type":"atr","ut":"M15","mult":1.5}}
+]
