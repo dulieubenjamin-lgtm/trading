@@ -31,15 +31,19 @@ from statistics import median
 SEUIL_DEGENERESCENCE = 0.15
 
 
-def amplitude_reference(bougies) -> float:
+def amplitude_reference(bougies, marche="forex") -> float:
     """Amplitude mediane des bougies que le CALENDRIER declare ouvertes.
 
     Exclure les bougies de marche ferme evite que la reference soit tiree vers
     le bas par les figees qu'on cherche justement a detecter.
     """
     from .fuseau import marche_ferme
+    from .marche import resoudre
 
-    ouvertes = [b.amplitude for b in bougies if not marche_ferme(b.ts)]
+    if resoudre(marche).continu:
+        ouvertes = [b.amplitude for b in bougies]
+    else:
+        ouvertes = [b.amplitude for b in bougies if not marche_ferme(b.ts)]
     if not ouvertes:
         raise ValueError(
             "aucune bougie en marche ouvert : impossible de calibrer le filtre"
@@ -51,15 +55,17 @@ def est_degeneree(bougie, reference: float) -> bool:
     return bougie.amplitude < SEUIL_DEGENERESCENCE * reference
 
 
-def filtrer(bougies):
+def filtrer(bougies, marche="forex"):
     """Retire les bougies de marche ferme. Renvoie (bougies_propres, rapport)."""
     from .fuseau import marche_ferme
+    from .marche import resoudre
 
-    reference = amplitude_reference(bougies)
+    continu = resoudre(marche).continu
+    reference = amplitude_reference(bougies, marche)
     propres, rejet_calendrier, rejet_amplitude = [], 0, 0
 
     for b in bougies:
-        if marche_ferme(b.ts):
+        if not continu and marche_ferme(b.ts):
             rejet_calendrier += 1
             continue
         if est_degeneree(b, reference):

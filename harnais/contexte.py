@@ -28,7 +28,7 @@ class Contexte:
         return self.unites[nom]
 
 
-def construire(base, regime="paris") -> Contexte:
+def construire(base, regime="paris", marche="forex") -> Contexte:
     reg = seances.REGIMES[regime]
     ctx = Contexte()
 
@@ -36,8 +36,8 @@ def construire(base, regime="paris") -> Contexte:
     en_m5 = pas <= timedelta(minutes=5)
 
     m15 = agregation.en_m15(base) if en_m5 else base
-    h4 = agregation.en_h4(base)
-    d1 = agregation.en_journalier(base)
+    h4 = agregation.en_h4(base, marche)
+    d1 = agregation.en_journalier(base, marche)
 
     series_m15 = {
         "atr": indicateurs.atr(m15, 14),

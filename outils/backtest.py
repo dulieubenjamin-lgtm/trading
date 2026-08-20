@@ -15,7 +15,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from harnais import cache, contexte, moteur, nettoyage, seances
-from harnais.fuseau import verifier_decalage
+from harnais.fuseau import verifier_continuite, verifier_decalage
+from harnais.marche import deduire_du_symbole, resoudre
 
 
 def main() -> int:
@@ -23,6 +24,8 @@ def main() -> int:
     ap.add_argument("--cache", default=None,
                     help="par defaut le M5 s'il existe, sinon le M15")
     ap.add_argument("--regime", default="paris")
+    ap.add_argument("--marche", default=None,
+                    help="forex | continu. Deduit du nom de fichier par defaut.")
     ap.add_argument("--setups", default="S1,S2,S3")
     ap.add_argument("--debut", default=None, help="premiere date incluse (AAAA-MM-JJ)")
     ap.add_argument("--fin", default=None, help="derniere date incluse (AAAA-MM-JJ)")
@@ -34,9 +37,13 @@ def main() -> int:
         m5 = Path("donnees/cache/XAUUSD-M5.csv")
         chemin = str(m5) if m5.exists() else "donnees/cache/XAUUSD-M15.csv"
 
+    marche = (resoudre(a.marche) if a.marche
+              else deduire_du_symbole(Path(chemin).stem))
+
     print("=" * 68)
     print("1. CHARGEMENT")
-    print(f"   unite de base : {Path(chemin).stem.split('-')[-1]}")
+    print(f"   unite de base : {Path(chemin).stem.split('-')[-1]}"
+          f"   |   marche : {marche.nom}")
     brutes = cache.charger(chemin)
     if a.debut or a.fin:
         brutes = [x for x in brutes
@@ -45,25 +52,31 @@ def main() -> int:
     print(f"   {len(brutes)} bougies  |  {brutes[0].ts:%Y-%m-%d %H:%M} -> "
           f"{brutes[-1].ts:%Y-%m-%d %H:%M} UTC")
 
-    print("\n2. VERIFICATION DU FUSEAU (assertion contre le calendrier forex)")
-    r = verifier_decalage(brutes)
-    print(f"   {r['controles']} fermetures hebdomadaires localisees")
-    print(f"   ecart median au vendredi 17h New York : {r['ecart_median']}  (teste le fuseau)")
-    if r['seances_ecourtees']:
-        print(f"   seances ecourtees detectees : " +
-              ", ".join(str(d) for d in r['seances_ecourtees']))
-        print("   (feries US, ou couverture degradee du fournisseur — "
-              "voir setups/ruptures.md)")
+    if marche.continu:
+        print("\n2. VERIFICATION DE CONTINUITE (marche 24/7 : aucune fermeture)")
+        r = verifier_continuite(brutes)
+        print(f"   pas median {r['pas']}  |  couverture {r['couverture']:.1%}")
+        print(f"   {r['trous']} trous, le plus grand de {r['plus_grand_trou']}")
+    else:
+        print("\n2. VERIFICATION DU FUSEAU (assertion contre le calendrier forex)")
+        r = verifier_decalage(brutes)
+        print(f"   {r['controles']} fermetures hebdomadaires localisees")
+        print(f"   ecart median au vendredi 17h New York : {r['ecart_median']}"
+              f"  (teste le fuseau)")
+        if r['seances_ecourtees']:
+            print("   seances ecourtees : " +
+                  ", ".join(str(d) for d in r['seances_ecourtees'][:6])
+                  + (" ..." if len(r['seances_ecourtees']) > 6 else ""))
 
     print("\n3. FILTRAGE DES BOUGIES SYNTHETIQUES")
-    propres, rap = nettoyage.filtrer(brutes)
+    propres, rap = nettoyage.filtrer(brutes, marche)
     print(f"   conservees        {rap['conservees']:>6}")
     print(f"   rejet calendrier  {rap['rejet_calendrier']:>6}  (week-ends)")
     print(f"   rejet amplitude   {rap['rejet_amplitude']:>6}  (feries, coupures)")
     print(f"   amplitude mediane {rap['amplitude_reference']:>6} $")
 
     print("\n4. WALK-FORWARD")
-    ctx = contexte.construire(propres, a.regime)
+    ctx = contexte.construire(propres, a.regime, marche)
     print(f"   unites derivees : " + "  ".join(
         f"{n} {len(ctx.unites[n][0])}" for n in ("M15", "H4", "D1")))
     res = moteur.executer(propres, ctx, a.regime, setups)

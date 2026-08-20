@@ -46,7 +46,6 @@ class HorsPlan(RuntimeError):
 
 BASE = "https://api.twelvedata.com/time_series"
 BASE_DEBUT = "https://api.twelvedata.com/earliest_timestamp"
-SYMBOLE = "XAU/USD"
 MAX_POINTS = 5000          # plafond par requete, plan gratuit
 MINUTES = {"5min": 5, "15min": 15, "1h": 60}
 # 8 requetes/min sur le plan gratuit. A 8,0 s pile on frole la limite : la
@@ -76,7 +75,7 @@ def contexte_ssl() -> ssl.SSLContext:
         return ssl.create_default_context()
 
 
-def profondeur_disponible(cle: str, intervalle: str):
+def profondeur_disponible(cle: str, intervalle: str, symbole: str = "XAU/USD"):
     """Date de la plus ancienne bougie que le plan donne pour cet intervalle.
 
     Un controle prealable a une requete, plutot que 78 requetes pour decouvrir
@@ -84,7 +83,7 @@ def profondeur_disponible(cle: str, intervalle: str):
     pas — on tente alors le telechargement plutot que de bloquer sur un doute.
     """
     params = urllib.parse.urlencode(
-        {"symbol": SYMBOLE, "interval": intervalle, "apikey": cle})
+        {"symbol": symbole, "interval": intervalle, "apikey": cle})
     try:
         with urllib.request.urlopen(f"{BASE_DEBUT}?{params}", timeout=30,
                                     context=contexte_ssl()) as r:
@@ -121,9 +120,10 @@ def fenetres(mois: int, intervalle: str):
         curseur += pas
 
 
-def tirer(cle: str, debut: datetime, fin: datetime, intervalle: str) -> list[str]:
+def tirer(cle: str, debut: datetime, fin: datetime, intervalle: str,
+          symbole: str = "XAU/USD") -> list[str]:
     params = urllib.parse.urlencode({
-        "symbol": SYMBOLE,
+        "symbol": symbole,
         "interval": intervalle,
         "start_date": debut.strftime("%Y-%m-%d %H:%M:%S"),
         "end_date": fin.strftime("%Y-%m-%d %H:%M:%S"),
@@ -157,19 +157,19 @@ def tirer(cle: str, debut: datetime, fin: datetime, intervalle: str) -> list[str
     return [l for l in lignes if not l.startswith("datetime")]
 
 
-def sonder(cle: str, intervalle: str) -> int:
+def sonder(cle: str, intervalle: str, symbole: str = "XAU/USD") -> int:
     """Mesure la profondeur reellement servie, en quelques requetes.
 
     Une requete minuscule par palier plutot qu'un telechargement complet pour
     decouvrir la limite au bout de 78 tranches.
     """
-    print(f"Sondage de la profondeur servie pour {SYMBOLE} en {intervalle}.\n")
+    print(f"Sondage de la profondeur servie pour {symbole} en {intervalle}.\n")
     dernier_ok = None
     for mois in (36, 24, 18, 12, 9, 7, 3):
         debut = datetime.now(timezone.utc) - timedelta(days=30 * mois)
         print(f"   {mois:>2} mois (depuis {debut:%Y-%m-%d}) ... ", end="", flush=True)
         try:
-            lignes = tirer(cle, debut, debut + timedelta(days=1), intervalle)
+            lignes = tirer(cle, debut, debut + timedelta(days=1), intervalle, symbole)
             print(f"OK ({len(lignes)} bougies)")
             dernier_ok = mois
             break
@@ -191,6 +191,8 @@ def sonder(cle: str, intervalle: str) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--symbole", default="XAU/USD",
+                    help="symbole Twelve Data (XAU/USD, BTC/USD, ...)")
     ap.add_argument("--mois", type=int, default=7, help="profondeur en mois (defaut 7)")
     ap.add_argument("--intervalle", default="15min", choices=sorted(MINUTES),
                     help="unite de temps (defaut 15min)")
@@ -223,9 +225,10 @@ def main() -> int:
         return 2
 
     nom = {"5min": "M5", "15min": "M15", "1h": "H1"}[args.intervalle]
-    cible = Path(args.sortie or f"donnees/cache/XAUUSD-{nom}.csv")
+    court = args.symbole.replace("/", "")
+    cible = Path(args.sortie or f"donnees/cache/{court}-{nom}.csv")
     cible.parent.mkdir(parents=True, exist_ok=True)
-    print(f"{SYMBOLE} {args.intervalle} -> {cible}")
+    print(f"{args.symbole} {args.intervalle} -> {cible}")
 
     lignes: dict[str, str] = {}
     if cible.exists():
@@ -235,9 +238,9 @@ def main() -> int:
     avant = len(lignes)
 
     if args.sonder:
-        return sonder(cle, args.intervalle)
+        return sonder(cle, args.intervalle, args.symbole)
 
-    debut_dispo = profondeur_disponible(cle, args.intervalle)
+    debut_dispo = profondeur_disponible(cle, args.intervalle, args.symbole)
     mois = args.mois
     if debut_dispo is not None:
         jours = (datetime.now(timezone.utc) - debut_dispo).days
@@ -261,7 +264,7 @@ def main() -> int:
         recues = None
         for tentative in (1, 2):
             try:
-                recues = tirer(cle, debut, fin, args.intervalle)
+                recues = tirer(cle, debut, fin, args.intervalle, args.symbole)
                 break
             except HorsPlan as e:
                 # Un refus de l'API n'est PAS transitoire : reessayer 77 fois
@@ -326,7 +329,7 @@ def main() -> int:
     else:
         print("\nToutes les tranches sont passees. Etape suivante :")
         print(f"\n    git add {cible.parent} && \\")
-        print(f"    git commit -m \"chore: cache XAUUSD {nom}\" && git push\n")
+        print(f"    git commit -m \"chore: cache {court} {nom}\" && git push\n")
     return 0
 
 

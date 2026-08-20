@@ -8,8 +8,13 @@ from __future__ import annotations
 
 from datetime import timedelta
 
+from zoneinfo import ZoneInfo
+
 from .bougie import Bougie
 from .fuseau import NEW_YORK
+from .marche import resoudre
+
+UTC = ZoneInfo("UTC")
 
 
 def _fusionner(groupe):
@@ -47,7 +52,7 @@ def en_h1(bougies):
     return _grouper(bougies, lambda b: b.ts.replace(minute=0, second=0, microsecond=0))
 
 
-def cle_h4(instant) -> str:
+def cle_h4(instant, marche="forex") -> str:
     """Bloc H4 ancre sur la seance forex, pas sur minuit UTC.
 
     La journee forex court de 17h00 New York a 17h00 New York : les six bougies
@@ -57,26 +62,32 @@ def cle_h4(instant) -> str:
     milieu de l'ouverture de Londres et au milieu de celle de New York, cassant
     en deux les mouvements que ces bougies sont censees decrire.
     """
+    m = resoudre(marche)
+    if m.continu:
+        # Aucune seance a respecter : on ancre sur minuit UTC.
+        return f"{instant.date().isoformat()}#{instant.hour // 4}"
     local = instant.astimezone(NEW_YORK)
-    bloc = ((local.hour - 17) % 24) // 4
-    return f"{seance_forex(instant)}#{bloc}"
+    bloc = ((local.hour - m.heure_ancre) % 24) // 4
+    return f"{seance_forex(instant, marche)}#{bloc}"
 
 
-def en_h4(bougies):
-    return _grouper(bougies, lambda b: cle_h4(b.ts))
+def en_h4(bougies, marche="forex"):
+    return _grouper(bougies, lambda b: cle_h4(b.ts, marche))
 
 
-def seance_forex(instant) -> str:
-    """Date de la seance forex contenant cet instant (bornes 17h00 New York)."""
+def seance_forex(instant, marche="forex") -> str:
+    """Date de la seance contenant cet instant.
+
+    Forex : bornes a 17h00 New York. Marche continu : journee UTC.
+    """
+    m = resoudre(marche)
+    if m.continu:
+        return instant.date().isoformat()
     local = instant.astimezone(NEW_YORK)
-    if local.hour >= 17:
+    if local.hour >= m.heure_ancre:
         local += timedelta(days=1)
     return local.date().isoformat()
 
 
-def en_journalier(bougies):
-    return _grouper(bougies, seance_forex_cle)
-
-
-def seance_forex_cle(b):
-    return seance_forex(b.ts)
+def en_journalier(bougies, marche="forex"):
+    return _grouper(bougies, lambda b: seance_forex(b.ts, marche))

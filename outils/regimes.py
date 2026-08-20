@@ -31,6 +31,7 @@ from statistics import mean, quantiles, stdev
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from harnais import cache, contexte, moteur, nettoyage
+from harnais.marche import deduire_du_symbole, resoudre
 
 CACHE = "donnees/cache/XAUUSD-M5.csv"
 FIN_CALIBRAGE = "2024-08-31"
@@ -56,11 +57,23 @@ def stats(rs):
 
 
 def main() -> int:
-    brutes = cache.charger(CACHE)
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--cache", default=CACHE)
+    ap.add_argument("--marche", default=None)
+    ap.add_argument("--fin-calibrage", default=FIN_CALIBRAGE)
+    ap.add_argument("--debut-test", default=DEBUT_TEST)
+    a = ap.parse_args()
+    global FIN_CALIBRAGE, DEBUT_TEST
+    FIN_CALIBRAGE, DEBUT_TEST = a.fin_calibrage, a.debut_test
+
+    marche = resoudre(a.marche) if a.marche else deduire_du_symbole(Path(a.cache).stem)
+    print(f"INSTRUMENT  {Path(a.cache).stem}   marche : {marche.nom}\n")
+    brutes = cache.charger(a.cache)
 
     calib = [b for b in brutes if str(b.ts.date()) <= FIN_CALIBRAGE]
-    p_cal, _ = nettoyage.filtrer(calib)
-    ratios = [v for v in contexte.construire(p_cal).series["ratio_vol"] if v]
+    p_cal, _ = nettoyage.filtrer(calib, marche)
+    ratios = [v for v in contexte.construire(p_cal, "paris", marche).series["ratio_vol"] if v]
     t1, t2 = quantiles(ratios, n=3)
     print("BORNES DE REGIME — issues du CALIBRAGE seul "
           f"({p_cal[0].ts:%Y-%m-%d} -> {p_cal[-1].ts:%Y-%m-%d})")
@@ -83,8 +96,8 @@ def main() -> int:
     # Ce n'est PAS un regard vers le futur : chaque valeur reste calculee
     # uniquement a partir des bougies qui la precedent. On elargit la chauffe,
     # on ne remonte pas le temps.
-    p_tout, _ = nettoyage.filtrer(brutes)
-    ctx = contexte.construire(p_tout)
+    p_tout, _ = nettoyage.filtrer(brutes, marche)
+    ctx = contexte.construire(p_tout, "paris", marche)
     res_tout = moteur.executer(p_tout, ctx)
     p_test = [b for b in p_tout if str(b.ts.date()) >= DEBUT_TEST]
 

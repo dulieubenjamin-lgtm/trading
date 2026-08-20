@@ -187,3 +187,39 @@ def verifier_decalage(bougies, tolerance=timedelta(minutes=30), minimum=100,
             {d for d, e in zip(dates, ecarts) if e > tolerance}
         ),
     }
+
+
+def verifier_continuite(bougies, couverture_minimale=0.90) -> dict:
+    """Controle d'integrite pour un marche CONTINU, ou rien ne ferme.
+
+    Un marche 24/7 n'a pas de fermeture hebdomadaire : l'assertion de fuseau n'a
+    rien a quoi se raccrocher. On verifie donc autre chose de verifiable — que la
+    serie est effectivement continue. Une couverture trop faible signale des
+    trous que le harnais prendrait pour des mouvements de prix.
+    """
+    from statistics import median
+
+    if len(bougies) < 100:
+        raise ValueError("echantillon trop court pour verifier la continuite")
+
+    pas = _pas_median(bougies)
+    duree = bougies[-1].ts - bougies[0].ts
+    attendues = duree / pas
+    couverture = len(bougies) / attendues
+
+    trous = [(b.ts - a.ts, a.ts) for a, b in zip(bougies, bougies[1:])
+             if b.ts - a.ts > pas * 3]
+    trous.sort(reverse=True)
+
+    if couverture < couverture_minimale:
+        raise FuseauIncoherent(
+            f"couverture de {couverture:.1%} seulement pour un marche continu "
+            f"(minimum {couverture_minimale:.0%}). La serie a des trous que le "
+            f"harnais lirait comme des mouvements de prix."
+        )
+    return {
+        "pas": pas,
+        "couverture": couverture,
+        "trous": len(trous),
+        "plus_grand_trou": trous[0][0] if trous else timedelta(0),
+    }
