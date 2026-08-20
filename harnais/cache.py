@@ -43,16 +43,28 @@ def charger(chemin: str | Path) -> list[Bougie]:
     if lignes[0].strip() != EN_TETE:
         raise ValueError(f"en-tete inattendu dans {chemin} : {lignes[0]!r}")
 
-    bougies, ambigues = [], []
+    bougies, ambigues, incoherentes = [], [], []
     for ligne in lignes[1:]:
         if not ligne.strip():
             continue
         etiquette, o, h, b, c = ligne.split(";")
         if fuseau != "UTC" and heure_ambigue(etiquette):
             ambigues.append(etiquette)
+        vo, vh, vb, vc = float(o), float(h), float(b), float(c)
+        # Le flux EUR/USD contient 0,14 % de bougies ou la cloture depasse le
+        # plus haut, ecart median de 2 points de base et maximum a 461. Ni XAU ni
+        # BTC n'en presentent une seule : c'est un defaut propre a ce flux.
+        #
+        # On les ECARTE plutot que de les reparer. Ramener le plus haut a la
+        # cloture fabriquerait, pour la bougie a 461 bp, un mouvement de cent ATR
+        # qui n'a jamais eu lieu — et le harnais le lirait comme un signal.
+        # Ignorer une bougie dont on ne connait pas le vrai prix est honnete ;
+        # en inventer un ne l'est pas.
+        if not (vb <= vo <= vh and vb <= vc <= vh):
+            incoherentes.append(etiquette)
+            continue
         bougies.append(
-            Bougie(etiquette_vers_utc(etiquette, fuseau),
-                   float(o), float(h), float(b), float(c))
+            Bougie(etiquette_vers_utc(etiquette, fuseau), vo, vh, vb, vc)
         )
 
     if ambigues:
@@ -61,6 +73,11 @@ def charger(chemin: str | Path) -> list[Bougie]:
             f"d'ete a Sydney, lue(s) comme la premiere occurrence "
             f"(ex. {ambigues[0]})"
         )
+
+    if incoherentes:
+        print(f"  note : {len(incoherentes)} bougie(s) a OHLC incoherent ecartee(s) "
+              f"({100 * len(incoherentes) / (len(bougies) + len(incoherentes)):.2f} %), "
+              f"ex. {incoherentes[0]}")
 
     bougies.sort(key=lambda x: x.ts)
     doublons = len(bougies) - len({x.ts for x in bougies})

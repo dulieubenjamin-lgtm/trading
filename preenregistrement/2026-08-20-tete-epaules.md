@@ -115,3 +115,68 @@ d'origine. Il ne change pas non plus le nombre d'instruments requis, ni la
 pondération déclarée (XAG reste le test faible). Il traite un seul point : ne pas
 confondre « la figure ne marche pas » avec « le coût modélisé rend tout
 instrument peu volatil intradable ».
+
+---
+
+# RÉSULTAT — 20/08/2026
+
+## Verdict selon la règle pré-enregistrée : **hypothèse NON confirmée**
+
+EUR/USD ne valide pas. La règle exigeait ≥ 2 instruments sur 3 ; le seul qui
+montre quelque chose reste l'or, celui qui a produit l'hypothèse.
+
+## Le chemin, parce qu'il compte autant que le résultat
+
+**Trois témoins successifs, trois confonds, chacun démasqué par un test de
+cohérence — pas par l'intuition.**
+
+**Témoin 1 — moments quelconques.** Sur EUR/USD il validait les CINQ figures,
+dont le double sommet, connu pour être négatif sur XAU *et* BTC. Un critère qui
+valide ce qu'on sait faux est cassé. Diagnostic : le témoin entre aussi dans les
+heures mortes, la figure jamais. Le z mesurait « entrer quand ça bouge ».
+
+**Témoin 2 — apparié en volatilité.** Pire. L'ATR est rétrospectif : apparier
+dessus tire des moments *après* un mouvement, où il reste peu à parcourir. Les
+témoins ont empiré, tous les z ont monté. Nouveau biais, pas correction.
+
+**Témoin 3 — mêmes bougies, sens opposé, dérive soustraite.** Le sens opposé
+ressortait à −0,42 / −0,98, bien pire que le hasard. Diagnostic : le stop.
+`extreme_recent` place le stop loin à l'achat et collé au prix à la vente quand
+le prix vient de casser vers le haut. Je comparais un bon stop à un stop absurde.
+
+**Témoin 4 — même chose, stop symétrique.** Long et court au même instant
+portent le même risque. C'est le seul qui isole la prédiction.
+
+## Ce qu'il reste après nettoyage
+
+| | XAU | EUR/USD | BTC |
+|---|---|---|---|
+| tête-épaules inversée | **+0,348** (z +2,65) | −0,081 | −0,068 |
+| + filtre H4 | +0,437 (z +2,45) | +0,022 | −0,049 |
+| double creux | +0,073 | −0,130 | +0,031 |
+| double sommet | −0,023 | −0,106 | +0,060 |
+
+Seuil de Bonferroni sur les ~125 tests de la session : **|z| ≥ 3,53**. Aucun ne
+le franchit. La tête-épaules inversée sur l'or reste **suggestive et non
+démontrée**.
+
+## Le chiffre que le nettoyage a coûté
+
+Sur XAU, la tête-épaules inversée filtrée donnait **+0,356 R** avec le stop
+structurel, et **+0,217 R** avec le stop symétrique. **Environ 0,14 R par trade
+venait donc du placement du stop, pas de la prédiction.**
+
+Ce n'est pas rien, et ce n'est pas non plus établi : un stop structurel est
+peut-être simplement plus large, donc moins pénalisé par le spread (§AA). Placer
+le stop derrière la structure plutôt qu'à distance fixe mérite un test dédié —
+séparé, avec la largeur contrôlée.
+
+## Ce que ce test a réellement établi
+
+**EUR/USD n'est pas tradable en intraday sous ce modèle de coût**, indépendamment
+de toute figure. ATR M15 de 5,9 points de base contre ~30 pour l'or : à 1,5 × ATR
+le spread mange **23 %** du risque, et le témoin aléatoire y perd −0,46 R. Il
+faudrait produire +0,46 R avant de gagner le premier centime.
+
+C'est une propriété de l'instrument, pas un jugement sur la méthode — et c'est
+la découverte la plus actionnable de ce test.

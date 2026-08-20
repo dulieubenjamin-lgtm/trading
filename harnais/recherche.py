@@ -388,3 +388,135 @@ def executer_spec(spec, base, biblio, max_trades_jour=2) -> dict:
         combine = [all(t[i] for t in tableaux) for i in range(len(base))]
         sorties[sens] = simuler(spec, base, combine, biblio, sens, max_trades_jour)
     return sorties
+
+
+def indices_signal(spec, base, biblio, sens):
+    """Indices des bougies ou le setup se declenche, avant tout plafond."""
+    conds = spec["conditions"] if sens != "vente" or spec.get("sens") != "les_deux" \
+        else [miroir(c) for c in spec["conditions"]]
+    tableaux = [evaluer_condition(c, biblio) for c in conds]
+    return [i for i in range(len(base)) if all(t[i] for t in tableaux)]
+
+
+def temoin_apparie_volatilite(spec, base, biblio, sens, indices, tirages=40,
+                              tolerance=0.10, graine=4242):
+    """Temoin dont les entrees ont la MEME distribution d'ATR que le setup.
+
+    POURQUOI CE TEMOIN REMPLACE LE PRECEDENT
+    ----------------------------------------
+    Un temoin a moments quelconques entre aussi dans les heures mortes. Une
+    figure, elle, se forme autour d'un mouvement reel : ses entrees tombent
+    mecaniquement sur des bougies plus actives. Le z mesure alors « entrer quand
+    ca bouge » et non « predire ».
+
+    Le defaut s'est revele sur EUR/USD, ou la friction est double de celle de
+    l'or : le critere y validait les CINQ figures testees, dont une connue pour
+    etre negative sur deux autres instruments. Un critere qui valide ce qu'on
+    sait faux est un critere casse.
+
+    Correction : chaque entree du temoin est tiree parmi les bougies dont l'ATR
+    est a `tolerance` pres de celui d'une entree reelle du setup. Ce qui reste
+    apres appariement est de la prediction, pas de la selection d'activite.
+    """
+    if not indices:
+        return None
+    atr = biblio.serie("atr", "M15", [14])
+    cibles = [atr[i] for i in indices if atr[i]]
+    if not cibles:
+        return None
+
+    # Index des bougies par tranche d'ATR, pour tirer vite.
+    valides = [i for i, a in enumerate(atr) if a]
+    valides.sort(key=lambda i: atr[i])
+    tries = [atr[i] for i in valides]
+
+    import bisect
+    etat = graine
+    moyennes = []
+    for _ in range(tirages):
+        faux = []
+        for cible in cibles:
+            g = bisect.bisect_left(tries, cible * (1 - tolerance))
+            d = bisect.bisect_right(tries, cible * (1 + tolerance))
+            if d <= g:
+                continue
+            etat = (etat * 1103515245 + 12345) % (2 ** 31)
+            faux.append(valides[g + etat % (d - g)])
+        if len(faux) < 20:
+            continue
+        candidats = [False] * len(base)
+        for i in faux:
+            candidats[i] = True
+        res = simuler(spec, base, candidats, biblio, sens, max_trades_jour=2)
+        st = res.stats()
+        if st and st["n"] >= 20:
+            moyennes.append(st["r_moyen"])
+    if len(moyennes) < 10:
+        return None
+    m = sum(moyennes) / len(moyennes)
+    sd = (sum((x - m) ** 2 for x in moyennes) / (len(moyennes) - 1)) ** 0.5
+    return {"moyenne": m, "ecart_type": sd, "tirages": len(moyennes)}
+
+
+def test_directionnel(spec, base, biblio, sens, tirages=40, graine=911):
+    """Le seul temoin qui isole la PREDICTION : memes bougies, sens oppose.
+
+    POURQUOI LES TEMOINS PRECEDENTS NE SUFFISENT PAS
+    ------------------------------------------------
+    Un temoin a moments quelconques mesure « entrer quand ca bouge » autant que
+    « predire ». Un temoin apparie sur l'ATR est pire encore : l'ATR est
+    retrospectif, donc l'appariement tire des moments APRES un mouvement, ou il
+    reste peu a parcourir. Chaque construction introduit son propre biais.
+
+    La seule comparaison exempte de ces defauts prend les MEMES bougies d'entree
+    et inverse le sens. Horaire identique, volatilite identique, structure
+    identique : ce qui reste est de l'information directionnelle, ou rien.
+
+    Reste la DERIVE — sur un actif qui monte, l'achat bat la vente partout. On
+    mesure donc le meme ecart sur des bougies tirees au hasard, et on soustrait :
+
+        edge = [R(sens) - R(oppose)]  sur les bougies du setup
+             - [R(sens) - R(oppose)]  sur des bougies quelconques
+
+    C'est une double difference. Elle annule la derive et l'effet d'horaire.
+    """
+    oppose = "vente" if sens == "achat" else "achat"
+    idx = indices_signal(spec, base, biblio, sens)
+    if len(idx) < 50:
+        return None
+
+    def r_moyen(indices, s):
+        c = [False] * len(base)
+        for i in indices:
+            c[i] = True
+        st = simuler(spec, base, c, biblio, s, max_trades_jour=2).stats()
+        return (st["r_moyen"], st["n"]) if st and st["n"] >= 20 else (None, 0)
+
+    r_sens, n_sens = r_moyen(idx, sens)
+    r_opp, _ = r_moyen(idx, oppose)
+    if r_sens is None or r_opp is None:
+        return None
+    delta_setup = r_sens - r_opp
+
+    # Meme mesure sur des bougies quelconques, pour isoler la derive.
+    etat = graine
+    deltas = []
+    utilisables = [i for i, a in enumerate(biblio.serie("atr", "M15", [14])) if a]
+    for _ in range(tirages):
+        faux = []
+        for _ in range(len(idx)):
+            etat = (etat * 1103515245 + 12345) % (2 ** 31)
+            faux.append(utilisables[etat % len(utilisables)])
+        faux = sorted(set(faux))
+        a, _ = r_moyen(faux, sens)
+        b, _ = r_moyen(faux, oppose)
+        if a is not None and b is not None:
+            deltas.append(a - b)
+    if len(deltas) < 10:
+        return None
+    m = sum(deltas) / len(deltas)
+    sd = (sum((x - m) ** 2 for x in deltas) / (len(deltas) - 1)) ** 0.5
+    return {"n": n_sens, "r_sens": r_sens, "r_oppose": r_opp,
+            "delta_setup": delta_setup, "delta_hasard": m, "ecart_type": sd,
+            "edge": delta_setup - m,
+            "z": (delta_setup - m) / sd if sd else 0.0}
