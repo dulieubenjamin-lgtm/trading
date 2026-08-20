@@ -35,6 +35,15 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+class HorsPlan(RuntimeError):
+    """L'API refuse la requete. Un 401 signale presque toujours une periode
+    hors de la profondeur servie par le plan, pas une cle invalide."""
+
+    def __init__(self, code, message):
+        self.code, self.message = code, message
+        super().__init__(f"HTTP {code} — {message}")
+
+
 BASE = "https://api.twelvedata.com/time_series"
 BASE_DEBUT = "https://api.twelvedata.com/earliest_timestamp"
 SYMBOLE = "XAU/USD"
@@ -124,9 +133,21 @@ def tirer(cle: str, debut: datetime, fin: datetime, intervalle: str) -> list[str
         "delimiter": ";",
         "apikey": cle,
     })
-    with urllib.request.urlopen(f"{BASE}?{params}", timeout=60,
-                                context=contexte_ssl()) as r:
-        corps = r.read().decode("utf-8")
+    try:
+        with urllib.request.urlopen(f"{BASE}?{params}", timeout=60,
+                                    context=contexte_ssl()) as r:
+            corps = r.read().decode("utf-8")
+    except urllib.error.HTTPError as e:
+        # Le corps d'une reponse d'erreur porte l'explication de l'API. urlopen
+        # la jette : sans ca on ne voit qu'un code HTTP nu, et un 401 ressemble
+        # a un probleme de cle alors qu'il signale le plus souvent une periode
+        # hors de la profondeur du plan.
+        detail = ""
+        try:
+            detail = json.loads(e.read().decode("utf-8")).get("message", "")
+        except Exception:
+            pass
+        raise HorsPlan(e.code, detail or f"HTTP {e.code}") from None
 
     if corps.lstrip().startswith("{"):        # l'API renvoie du JSON en cas d'erreur
         detail = json.loads(corps)
@@ -136,6 +157,38 @@ def tirer(cle: str, debut: datetime, fin: datetime, intervalle: str) -> list[str
     return [l for l in lignes if not l.startswith("datetime")]
 
 
+def sonder(cle: str, intervalle: str) -> int:
+    """Mesure la profondeur reellement servie, en quelques requetes.
+
+    Une requete minuscule par palier plutot qu'un telechargement complet pour
+    decouvrir la limite au bout de 78 tranches.
+    """
+    print(f"Sondage de la profondeur servie pour {SYMBOLE} en {intervalle}.\n")
+    dernier_ok = None
+    for mois in (36, 24, 18, 12, 9, 7, 3):
+        debut = datetime.now(timezone.utc) - timedelta(days=30 * mois)
+        print(f"   {mois:>2} mois (depuis {debut:%Y-%m-%d}) ... ", end="", flush=True)
+        try:
+            lignes = tirer(cle, debut, debut + timedelta(days=1), intervalle)
+            print(f"OK ({len(lignes)} bougies)")
+            dernier_ok = mois
+            break
+        except HorsPlan as e:
+            print(f"refus — {e.message[:60]}")
+        except Exception as e:
+            print(f"echec — {str(e)[:60]}")
+        time.sleep(PAUSE)
+
+    print()
+    if dernier_ok is None:
+        print("Aucun palier ne passe. Verifie la cle avec un appel simple.")
+        return 1
+    print(f"Profondeur exploitable : environ {dernier_ok} mois.")
+    print(f"\n    python3 outils/telecharger.py --intervalle {intervalle} "
+          f"--mois {dernier_ok}")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--mois", type=int, default=7, help="profondeur en mois (defaut 7)")
@@ -143,6 +196,8 @@ def main() -> int:
                     help="unite de temps (defaut 15min)")
     ap.add_argument("--sortie", default=None,
                     help="par defaut donnees/cache/XAUUSD-<UT>.csv")
+    ap.add_argument("--sonder", action="store_true",
+                    help="mesure la profondeur d'historique servie, sans rien ecrire")
     args = ap.parse_args()
 
     # La cle peut venir de l'environnement ; sinon on la demande ICI, au moment
@@ -179,6 +234,9 @@ def main() -> int:
                 lignes[l.split(";")[0]] = l
     avant = len(lignes)
 
+    if args.sonder:
+        return sonder(cle, args.intervalle)
+
     debut_dispo = profondeur_disponible(cle, args.intervalle)
     mois = args.mois
     if debut_dispo is not None:
@@ -205,6 +263,18 @@ def main() -> int:
             try:
                 recues = tirer(cle, debut, fin, args.intervalle)
                 break
+            except HorsPlan as e:
+                # Un refus de l'API n'est PAS transitoire : reessayer 77 fois
+                # avec 65 s d'attente brulerait le quota et une heure et demie
+                # pour rien. On arrete net.
+                print(f"REFUS : {e}")
+                print("\nL'API refuse cette periode. Un 401 signale presque")
+                print("toujours une profondeur d'historique superieure a ce que")
+                print("ton plan sert — pas une cle invalide.")
+                print("\nPour connaitre la profondeur reelle :")
+                print("    python3 outils/telecharger.py --sonder --intervalle "
+                      f"{args.intervalle}")
+                return 4
             except Exception as e:
                 if "CERTIFICATE_VERIFY_FAILED" in str(e):
                     print(f"ECHEC : {e}")
