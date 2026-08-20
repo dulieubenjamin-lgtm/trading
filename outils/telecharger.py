@@ -39,7 +39,11 @@ BASE = "https://api.twelvedata.com/time_series"
 SYMBOLE = "XAU/USD"
 MAX_POINTS = 5000          # plafond par requete, plan gratuit
 MINUTES = {"5min": 5, "15min": 15, "1h": 60}
-PAUSE = 8.0                # 8 requetes/min sur le plan gratuit -> 1 toutes les 8 s
+# 8 requetes/min sur le plan gratuit. A 8,0 s pile on frole la limite : la
+# moindre latence reseau fait passer la 8e requete dans la meme minute que la
+# premiere, et l'API refuse. 9,5 s laisse de la marge sans allonger notablement.
+PAUSE = 9.5
+ATTENTE_APRES_ECHEC = 65.0     # une minute pleine : laisse le compteur se vider
 EN_TETE = "datetime;open;high;low;close"
 
 
@@ -150,21 +154,37 @@ def main() -> int:
                 lignes[l.split(";")[0]] = l
     avant = len(lignes)
 
+    reussies = 0
     tranches = list(fenetres(args.mois, args.intervalle))
     print(f"{len(tranches)} requetes de {pas_jours(args.intervalle)} jours, "
           f"~{PAUSE * (len(tranches) - 1):.0f} s")
     echecs_ssl = 0
     for n, (debut, fin) in enumerate(tranches, 1):
         print(f"[{n}/{len(tranches)}] {debut:%Y-%m-%d} -> {fin:%Y-%m-%d} ...", end=" ", flush=True)
-        try:
-            recues = tirer(cle, debut, fin, args.intervalle)
-        except Exception as e:
-            print(f"ECHEC : {e}")
-            if "CERTIFICATE_VERIFY_FAILED" in str(e):
-                echecs_ssl += 1
+        recues = None
+        for tentative in (1, 2):
+            try:
+                recues = tirer(cle, debut, fin, args.intervalle)
+                break
+            except Exception as e:
+                if "CERTIFICATE_VERIFY_FAILED" in str(e):
+                    print(f"ECHEC : {e}")
+                    echecs_ssl += 1
+                    break
+                if tentative == 1:
+                    # Une seule reprise, et seulement apres une minute pleine :
+                    # la cause de loin la plus frequente est le plafond de
+                    # requetes par minute, qui se vide tout seul.
+                    print(f"echec ({str(e)[:60]}) — reprise dans "
+                          f"{ATTENTE_APRES_ECHEC:.0f} s", end=" ", flush=True)
+                    time.sleep(ATTENTE_APRES_ECHEC)
+                else:
+                    print(f"ECHEC DEFINITIF : {e}")
+        if recues is None:
             continue
         for l in recues:
             lignes[l.split(";")[0]] = l
+        reussies += 1
         print(f"{len(recues)} bougies")
         if n < len(tranches):
             time.sleep(PAUSE)
@@ -189,7 +209,15 @@ def main() -> int:
 
     print(f"\n{cible} : {avant} -> {len(lignes)} bougies (+{len(lignes) - avant})")
     print(f"couverture : {ordonnees[0].split(';')[0]} -> {ordonnees[-1].split(';')[0]} UTC")
-    print("\nCommiter ce fichier : c'est la seule source du harnais.")
+    manquantes = len(tranches) - reussies
+    if manquantes:
+        print(f"\nATTENTION : {manquantes} tranche(s) sur {len(tranches)} ont echoue.")
+        print("Le cache est incomplet. Relance la meme commande : elle reprend")
+        print("les tranches manquantes et fusionne sans doublon.")
+    else:
+        print("\nToutes les tranches sont passees. Etape suivante :")
+        print(f"\n    git add {cible.parent} && \\")
+        print(f"    git commit -m \"chore: cache XAUUSD {nom}\" && git push\n")
     return 0
 
 
