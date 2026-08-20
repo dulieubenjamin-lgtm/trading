@@ -64,14 +64,13 @@ def main() -> int:
     ap.add_argument("--fin-calibrage", default=FIN_CALIBRAGE)
     ap.add_argument("--debut-test", default=DEBUT_TEST)
     a = ap.parse_args()
-    global FIN_CALIBRAGE, DEBUT_TEST
-    FIN_CALIBRAGE, DEBUT_TEST = a.fin_calibrage, a.debut_test
+    fin_calibrage, debut_test = a.fin_calibrage, a.debut_test
 
     marche = resoudre(a.marche) if a.marche else deduire_du_symbole(Path(a.cache).stem)
     print(f"INSTRUMENT  {Path(a.cache).stem}   marche : {marche.nom}\n")
     brutes = cache.charger(a.cache)
 
-    calib = [b for b in brutes if str(b.ts.date()) <= FIN_CALIBRAGE]
+    calib = [b for b in brutes if str(b.ts.date()) <= fin_calibrage]
     p_cal, _ = nettoyage.filtrer(calib, marche)
     ratios = [v for v in contexte.construire(p_cal, "paris", marche).series["ratio_vol"] if v]
     t1, t2 = quantiles(ratios, n=3)
@@ -99,12 +98,12 @@ def main() -> int:
     p_tout, _ = nettoyage.filtrer(brutes, marche)
     ctx = contexte.construire(p_tout, "paris", marche)
     res_tout = moteur.executer(p_tout, ctx)
-    p_test = [b for b in p_tout if str(b.ts.date()) >= DEBUT_TEST]
+    p_test = [b for b in p_tout if str(b.ts.date()) >= debut_test]
 
     class _Res:
         pass
     res = _Res()
-    res.trades = [t for t in res_tout.trades if str(t.plan.ts.date()) >= DEBUT_TEST]
+    res.trades = [t for t in res_tout.trades if str(t.plan.ts.date()) >= debut_test]
 
     def classe(r):
         if r is None:
