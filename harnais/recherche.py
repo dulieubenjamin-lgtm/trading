@@ -23,7 +23,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import timedelta
 
-from . import agregation, alignement, indicateurs, indicateurs_etendus as ie
+from . import agregation, alignement, formes, indicateurs, indicateurs_etendus as ie
 from .marche import resoudre
 
 # Valeur neutre de chaque indicateur borne, pour le miroir achat <-> vente.
@@ -117,6 +117,17 @@ class Bibliotheque:
         if nom in ("range_horaire_haut", "range_horaire_bas"):
             h, bs = ie.range_horaire(b, *(p or [0.0, 7.0]))
             return h if nom == "range_horaire_haut" else bs
+        if nom in ("double_creux", "double_sommet"):
+            return formes.double_extreme(
+                b, "creux" if nom.endswith("creux") else "sommet", *(p or []))
+        if nom in ("drapeau_haussier", "drapeau_baissier"):
+            return formes.drapeau(
+                b, "haussier" if nom.endswith("haussier") else "baissier", *(p or []))
+        if nom == "triangle":
+            return formes.triangle(b, *(p or []))
+        if nom in ("tete_epaules", "tete_epaules_inverse"):
+            return formes.tete_epaules(
+                b, "sommet" if nom == "tete_epaules" else "creux", *(p or []))
         if nom == "heure_utc":
             return [x.ts.hour + x.ts.minute / 60 for x in b]
         raise SpecInvalide(f"indicateur inconnu : {nom!r}")

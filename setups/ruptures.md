@@ -642,3 +642,82 @@ plus d'information que l'espérance ne contienne déjà.
 Si une direction existe, c'est donc vers des objectifs **plus larges**, pas plus
 serrés. La tendance est monotone jusqu'à 3R (29 % de candidats au-dessus du
 hasard) — mais elle n'atteint jamais la parité de 50 %.
+
+---
+
+# Neuvième passe — les figures chartistes (20/08)
+
+## HH. Une classe d'hypothèses entièrement absente des tests précédents
+
+Tout ce qui avait été testé jusqu'ici était **indicateur** : une fonction qui
+compresse une fenêtre de prix en un nombre. Deux trajectoires très différentes
+donnent le même RSI. Une **figure** est une relation géométrique entre des pivots
+précis — exactement l'information que les indicateurs jettent.
+
+Huit figures implémentées mécaniquement, chaque tolérance étant un paramètre
+explicite : double creux/sommet, drapeaux, triangles, épaule-tête-épaule et son
+inverse. Signalées à la confirmation du dernier pivot, jamais au moment où l'œil
+les voit sur un graphique fini.
+
+**Réglage des paramètres sur la fréquence seule**, en ne regardant que les
+comptages de signaux et jamais les résultats. C'est la seule forme d'ajustement
+admissible : elle porte sur une contrainte déclarée d'avance.
+
+## II. Le premier résultat qui franchit le seuil
+
+Cumul sur les trois fenêtres XAU, témoin apparié par sens et par type de stop :
+
+| figure | n | réussite | R moyen | t | concentration |
+|---|---|---|---|---|---|
+| **tête-épaules inversé + filtre H4** | 191 | 53,9 % | **+0,384** | **+4,00** | 24 % |
+| tête-épaules inversé | 277 | 50,2 % | +0,275 | +3,44 | 34 % |
+| double creux | 381 | 41,7 % | +0,068 | +1,04 | **145 %** |
+| double sommet | 345 | 35,7 % | −0,081 | −1,21 | — |
+
+Seuil de Bonferroni sur les ~121 tests de la session : **|t| ≥ 3,53**. La
+tête-épaules inversée filtrée le franchit — la seule chose de toute cette
+recherche à y parvenir.
+
+**La concentration est le contrôle décisif.** Elle mesure la part du résultat
+portée par les 5 % de meilleurs trades. À 24 %, la tête-épaules inversée est
+portée par l'ensemble de sa distribution. Le double creux affiche **145 %** :
+sans ses meilleurs trades il est négatif, donc son +0,068 R n'est qu'une poignée
+de coups déguisée en système. Sans cette mesure, les deux se seraient ressemblés.
+
+Positif dans les **trois** fenêtres XAU indépendamment : +0,296 (recherche),
++0,203 (validation), +0,334 (holdout, jamais vu avant cet instant).
+
+## JJ. Mais BTC contredit
+
+| figure | XAU (3 ans) | BTC (3 ans) |
+|---|---|---|
+| tête-épaules inversé | **+0,275** (n=277) | **−0,077** (n=448) |
+| tête-épaules inv. + filtre | **+0,384** (n=191) | **−0,112** (n=262) |
+| double creux | +0,068 | −0,087 |
+| double sommet | −0,081 | −0,042 |
+
+Sur BTC, les cinq figures battent leur témoin (z > 0) mais restent **absolument
+négatives**. Battre un témoin qui perd −0,14 R en perdant −0,08 R n'est pas
+gagner de l'argent.
+
+C'est exactement le test qui a tué l'hypothèse de régime (§Y), et il refuse de
+valider celle-ci.
+
+## KK. Deux lectures, et comment les départager
+
+**Lecture 1 — spécifique à l'or.** Les figures chartistes sont massivement
+suivies sur les marchés à forte présence technique. Si beaucoup d'acteurs tradent
+la même figure au même endroit, elle devient partiellement auto-réalisatrice. La
+base de participants de BTC est différente. Cette lecture est **testable** : la
+figure devrait alors marcher aussi sur d'autres instruments très chartés —
+EUR/USD, indices, argent — et échouer sur les marchés jeunes ou peu techniques.
+
+**Lecture 2 — l'or a eu de la chance.** 191 trades restent peu, la sélection des
+cinq figures s'est faite après avoir vu deux fenêtres, et sur ~121 tests un t de
+4,00 reste atteignable par sélection.
+
+**Rien dans les données actuelles ne départage ces deux lectures.** Un seul test
+le ferait : la même figure, sans aucun réglage, sur trois ou quatre instruments
+supplémentaires. Coût : un téléchargement et un run. C'est exactement le protocole
+qui a réfuté l'hypothèse de régime en deux minutes après cinq ans d'attente
+annoncés.

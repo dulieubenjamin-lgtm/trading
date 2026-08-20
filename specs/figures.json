@@ -1,0 +1,558 @@
+[
+ {
+  "nom": "double-creux",
+  "famille": "figures",
+  "sens": "achat",
+  "tp_r": 2.0,
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "double_creux",
+     "ut": "M15",
+     "params": [
+      3,
+      0.5,
+      8,
+      60,
+      1.5
+     ]
+    },
+    "op": "croise_haut",
+    "droite": {
+     "const": 0.5
+    }
+   }
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "n": 12
+  }
+ },
+ {
+  "nom": "double-creux-filtre-h4",
+  "famille": "figures",
+  "sens": "achat",
+  "tp_r": 2.0,
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "double_creux",
+     "ut": "M15",
+     "params": [
+      3,
+      0.5,
+      8,
+      60,
+      1.5
+     ]
+    },
+    "op": "croise_haut",
+    "droite": {
+     "const": 0.5
+    }
+   },
+   {
+    "gauche": {
+     "prix": "cloture"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "ema",
+     "ut": "H4",
+     "params": [
+      50
+     ]
+    }
+   }
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "n": 12
+  }
+ },
+ {
+  "nom": "double-sommet",
+  "famille": "figures",
+  "sens": "vente",
+  "tp_r": 2.0,
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "double_sommet",
+     "ut": "M15",
+     "params": [
+      3,
+      0.5,
+      8,
+      60,
+      1.5
+     ]
+    },
+    "op": "croise_haut",
+    "droite": {
+     "const": 0.5
+    }
+   }
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "n": 12
+  }
+ },
+ {
+  "nom": "double-sommet-filtre-h4",
+  "famille": "figures",
+  "sens": "vente",
+  "tp_r": 2.0,
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "double_sommet",
+     "ut": "M15",
+     "params": [
+      3,
+      0.5,
+      8,
+      60,
+      1.5
+     ]
+    },
+    "op": "croise_haut",
+    "droite": {
+     "const": 0.5
+    }
+   },
+   {
+    "gauche": {
+     "prix": "cloture"
+    },
+    "op": "<",
+    "droite": {
+     "ind": "ema",
+     "ut": "H4",
+     "params": [
+      50
+     ]
+    }
+   }
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "n": 12
+  }
+ },
+ {
+  "nom": "drapeau-haussier",
+  "famille": "figures",
+  "sens": "achat",
+  "tp_r": 2.0,
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "drapeau_haussier",
+     "ut": "M15",
+     "params": [
+      1.2,
+      12,
+      12,
+      2.0
+     ]
+    },
+    "op": "croise_haut",
+    "droite": {
+     "const": 0.5
+    }
+   }
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "n": 12
+  }
+ },
+ {
+  "nom": "drapeau-haussier-filtre-h4",
+  "famille": "figures",
+  "sens": "achat",
+  "tp_r": 2.0,
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "drapeau_haussier",
+     "ut": "M15",
+     "params": [
+      1.2,
+      12,
+      12,
+      2.0
+     ]
+    },
+    "op": "croise_haut",
+    "droite": {
+     "const": 0.5
+    }
+   },
+   {
+    "gauche": {
+     "prix": "cloture"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "ema",
+     "ut": "H4",
+     "params": [
+      50
+     ]
+    }
+   }
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "n": 12
+  }
+ },
+ {
+  "nom": "drapeau-baissier",
+  "famille": "figures",
+  "sens": "vente",
+  "tp_r": 2.0,
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "drapeau_baissier",
+     "ut": "M15",
+     "params": [
+      1.2,
+      12,
+      12,
+      2.0
+     ]
+    },
+    "op": "croise_haut",
+    "droite": {
+     "const": 0.5
+    }
+   }
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "n": 12
+  }
+ },
+ {
+  "nom": "drapeau-baissier-filtre-h4",
+  "famille": "figures",
+  "sens": "vente",
+  "tp_r": 2.0,
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "drapeau_baissier",
+     "ut": "M15",
+     "params": [
+      1.2,
+      12,
+      12,
+      2.0
+     ]
+    },
+    "op": "croise_haut",
+    "droite": {
+     "const": 0.5
+    }
+   },
+   {
+    "gauche": {
+     "prix": "cloture"
+    },
+    "op": "<",
+    "droite": {
+     "ind": "ema",
+     "ut": "H4",
+     "params": [
+      50
+     ]
+    }
+   }
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "n": 12
+  }
+ },
+ {
+  "nom": "tete-epaules",
+  "famille": "figures",
+  "sens": "vente",
+  "tp_r": 2.0,
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "tete_epaules",
+     "ut": "M15",
+     "params": [
+      3,
+      0.9,
+      80,
+      0.5
+     ]
+    },
+    "op": "croise_haut",
+    "droite": {
+     "const": 0.5
+    }
+   }
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "n": 12
+  }
+ },
+ {
+  "nom": "tete-epaules-filtre-h4",
+  "famille": "figures",
+  "sens": "vente",
+  "tp_r": 2.0,
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "tete_epaules",
+     "ut": "M15",
+     "params": [
+      3,
+      0.9,
+      80,
+      0.5
+     ]
+    },
+    "op": "croise_haut",
+    "droite": {
+     "const": 0.5
+    }
+   },
+   {
+    "gauche": {
+     "prix": "cloture"
+    },
+    "op": "<",
+    "droite": {
+     "ind": "ema",
+     "ut": "H4",
+     "params": [
+      50
+     ]
+    }
+   }
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "n": 12
+  }
+ },
+ {
+  "nom": "tete-epaules-inverse",
+  "famille": "figures",
+  "sens": "achat",
+  "tp_r": 2.0,
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "tete_epaules_inverse",
+     "ut": "M15",
+     "params": [
+      3,
+      0.9,
+      80,
+      0.5
+     ]
+    },
+    "op": "croise_haut",
+    "droite": {
+     "const": 0.5
+    }
+   }
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "n": 12
+  }
+ },
+ {
+  "nom": "tete-epaules-inverse-filtre-h4",
+  "famille": "figures",
+  "sens": "achat",
+  "tp_r": 2.0,
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "tete_epaules_inverse",
+     "ut": "M15",
+     "params": [
+      3,
+      0.9,
+      80,
+      0.5
+     ]
+    },
+    "op": "croise_haut",
+    "droite": {
+     "const": 0.5
+    }
+   },
+   {
+    "gauche": {
+     "prix": "cloture"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "ema",
+     "ut": "H4",
+     "params": [
+      50
+     ]
+    }
+   }
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "n": 12
+  }
+ },
+ {
+  "nom": "triangle-haussier",
+  "famille": "figures",
+  "sens": "achat",
+  "tp_r": 2.0,
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "triangle",
+     "ut": "M15",
+     "params": [
+      3,
+      60,
+      3,
+      0.45
+     ]
+    },
+    "op": "croise_haut",
+    "droite": {
+     "const": 0.5
+    }
+   }
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "n": 12
+  }
+ },
+ {
+  "nom": "triangle-haussier-filtre-h4",
+  "famille": "figures",
+  "sens": "achat",
+  "tp_r": 2.0,
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "triangle",
+     "ut": "M15",
+     "params": [
+      3,
+      60,
+      3,
+      0.45
+     ]
+    },
+    "op": "croise_haut",
+    "droite": {
+     "const": 0.5
+    }
+   },
+   {
+    "gauche": {
+     "prix": "cloture"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "ema",
+     "ut": "H4",
+     "params": [
+      50
+     ]
+    }
+   }
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "n": 12
+  }
+ },
+ {
+  "nom": "triangle-baissier",
+  "famille": "figures",
+  "sens": "vente",
+  "tp_r": 2.0,
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "triangle",
+     "ut": "M15",
+     "params": [
+      3,
+      60,
+      3,
+      0.45
+     ]
+    },
+    "op": "croise_haut",
+    "droite": {
+     "const": 0.5
+    }
+   }
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "n": 12
+  }
+ },
+ {
+  "nom": "triangle-baissier-filtre-h4",
+  "famille": "figures",
+  "sens": "vente",
+  "tp_r": 2.0,
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "triangle",
+     "ut": "M15",
+     "params": [
+      3,
+      60,
+      3,
+      0.45
+     ]
+    },
+    "op": "croise_haut",
+    "droite": {
+     "const": 0.5
+    }
+   },
+   {
+    "gauche": {
+     "prix": "cloture"
+    },
+    "op": "<",
+    "droite": {
+     "ind": "ema",
+     "ut": "H4",
+     "params": [
+      50
+     ]
+    }
+   }
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "n": 12
+  }
+ }
+]
