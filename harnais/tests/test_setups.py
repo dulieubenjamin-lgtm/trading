@@ -65,7 +65,7 @@ jour_test = jour if jour.weekday() < 5 else jour + timedelta(days=(7 - jour.week
 # le test alors que le mecanisme etait intact. Le test valide le MECANISME, pas
 # un seuil.
 _chauffe = contexte.construire(nettoyage.filtrer(bougies)[0])
-_atr_d1 = next(v for v in reversed(_chauffe["atr_d1"]) if v)
+_atr_d1 = next(v for v in reversed(_chauffe.series["atr_d1"]) if v)
 AMPLITUDE = (S1_RATIO_MIN + S1_RATIO_MAX) / 2 * _atr_d1
 BAS_RANGE = 4000.0
 HAUT_RANGE = BAS_RANGE + AMPLITUDE
@@ -98,7 +98,8 @@ for k in range(32, 96):
 
 bougies += test
 propres, _ = nettoyage.filtrer(bougies)
-series = contexte.construire(propres)
+ctx = contexte.construire(propres)
+series = ctx.series
 
 print("\n1. Le contexte expose bien le range asiatique")
 i_retest = next(i for i, b in enumerate(propres)
@@ -118,8 +119,8 @@ i_dans_range = next(i for i, b in enumerate(propres)
                     if b.ts == jour_test + timedelta(minutes=15 * 10))
 verifie("range inconnu pendant sa formation", series["range_haut"][i_dans_range], None)
 
-print("\n3. S1 se declenche sur le retest")
-plan = s1(VueMarche(propres, i_retest, series))
+print("\n3. S1 se declenche sur le retest de la cassure")
+plan = s1(VueMarche(propres, i_retest, ctx.series, ctx.unites))
 if plan is None:
     print("  ECHEC : S1 n'a produit aucun plan sur un scenario concu pour lui")
     sys.exit(1)
@@ -136,10 +137,11 @@ print(f"      entree {plan.entree} | stop {plan.stop:.2f} | "
 print("\n4. S1 ne se declenche PAS avant la cassure")
 i_avant = next(i for i, b in enumerate(propres)
                if b.ts == jour_test + timedelta(minutes=15 * 28))
-verifie("aucun plan avant la cassure", s1(VueMarche(propres, i_avant, series)), None)
+verifie("aucun plan avant la cassure",
+        s1(VueMarche(propres, i_avant, ctx.series, ctx.unites)), None)
 
 print("\n5. Le moteur execute le trade de bout en bout")
-res = moteur.executer(propres, series)
+res = moteur.executer(propres, ctx)
 # Les journees de chauffe sont des triangles deterministes : elles produisent
 # elles aussi des cassures de range. On n'assert donc que sur le trade du jour
 # de test, pas sur le total.
@@ -147,8 +149,15 @@ du_jour = [t for t in res.trades
            if t.plan.ts.date() == jour_test.date()]
 verifie("un trade sur la journee de test", len(du_jour), 1)
 t = du_jour[0]
-verifie("le plan n'a PAS ete modifie par le moteur",
-        t.plan.stop, plan.stop)
+# L'immuabilite ne se verifie pas en comparant a un plan calcule sur UNE bougie
+# precise : le moteur entre sur la premiere bougie de retest qualifiante, qui
+# n'est pas forcement celle-la. Ce qui doit etre vrai, c'est que le moteur n'a
+# pas touche au plan qu'il a lui-meme retenu.
+verifie("plan coherent : stop du bon cote de l'entree",
+        t.plan.stop < t.plan.entree, True)
+if not t.tp1_pris:
+    verifie("le moteur n'a pas touche au stop du plan",
+            t.stop_courant, t.plan.stop)
 print(f"      {t.plan.setup} {t.plan.sens} | sortie {t.motif_sortie} | "
       f"R {t.r_realise:+.2f} | capital {res.capital:.2f} $")
 verifie("cout du spread preleve a l'entree",

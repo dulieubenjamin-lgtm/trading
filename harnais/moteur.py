@@ -26,6 +26,8 @@ from .setups import SETUPS
 from .vue import VueMarche
 
 SPREAD = 0.30              # $ par once, aller simple. Ordre de grandeur retail sur XAU.
+# En base M5, l'incertitude intra-bougie porte sur 5 minutes au lieu de 15 : le
+# choix conservateur ci-dessous (le stop l'emporte) coute donc trois fois moins.
 RISQUE_PCT = 1.0
 CAPITAL_INITIAL = 10_000.0
 MAX_TRADES_JOUR = 3
@@ -81,7 +83,8 @@ def _signe(sens: str) -> int:
     return 1 if sens == "achat" else -1
 
 
-def executer(bougies, series, regime="paris", setups=("S1", "S2", "S3")) -> Resultat:
+def executer(bougies, ctx, regime="paris", setups=("S1", "S2", "S3")) -> Resultat:
+    """`ctx` est un contexte.Contexte : series alignees + unites superieures."""
     reg = seances.REGIMES[regime]
     res = Resultat()
     position: Trade | None = None
@@ -135,7 +138,7 @@ def executer(bougies, series, regime="paris", setups=("S1", "S2", "S3")) -> Resu
         if seances.apres(b.ts, reg["derniere_entree"], regime):
             continue
 
-        vue = VueMarche(bougies, i, series)
+        vue = VueMarche(bougies, i, ctx.series, ctx.unites)
         for nom in setups:
             plan = SETUPS[nom](vue, regime)
             if plan is None:

@@ -155,3 +155,63 @@ valider hors échantillon sur davantage de données.
 
 Pour S2 et S3, le problème n'est pas un seuil mais l'idée du setup. Il faut le
 réécrire, pas le desserrer.
+
+---
+
+# Troisième passe — lecture D1 / H4 / M15 / M5 (20/08)
+
+## H. Les deux blocages du §E sont levés, par restructuration et non par desserrage
+
+**R12 — S2.** La « confluence obligatoire » exigeait que le prix *et* l'EMA50 M15
+se trouvent dans une zone large de 0,38 × ATR : deux grandeurs indépendantes
+dans une fenêtre étroite, soit un filtre d'impossibilité (4 candidats, 0 passant).
+Le biais est désormais porté par l'unité qui a vocation à le porter, la **H4**.
+Ce n'est pas un seuil desserré, c'est une condition déplacée sur la bonne unité.
+
+**R13 — S3.** « Divergence à un extrême 5 jours » demandait un essoufflement du
+momentum exactement là où le momentum est maximal par construction. Le niveau est
+désormais un **pivot H4 confirmé et déjà ancien** (≥ 3 bougies H4) — un niveau
+travaillé, où un momentum a le droit de faiblir.
+→ **S3 passe de 0 à 17 signaux.** Le diagnostic était juste.
+
+## I. R14 — un bug introduit par la réécriture, attrapé par le test
+
+La reconstruction de l'état de cassure de S1 parcourait la vue **à l'envers du
+temps** et traitait toute clôture du mauvais côté comme une invalidation — y
+compris celles *antérieures* à la cassure, qui ne sont que l'état d'avant.
+Conséquence : aucune cassure ne survivait à sa propre bougie précédente.
+
+Le scénario construit de `test_setups.py` l'a signalé immédiatement. C'est
+précisément pourquoi il existe : un setup qui ne se déclenche jamais est
+indiscernable d'un setup sans signal.
+
+## J. Résultats après restructuration
+
+Calibrage jan–avr, test mai–août jamais utilisé pour régler quoi que ce soit.
+
+| | trades | réussite | R moyen | R total |
+|---|---|---|---|---|
+| **S1** (test) | **19** | 36,8 % | **−0,391** | −7,42 |
+| **S3** (test) | 9 | 55,6 % | −0,063 | −0,57 |
+| S2 (test) | 0 | — | — | — |
+| **Total test** | **28** | | | **−7,99** |
+
+**S1 atteint 19 trades** — au seuil des 20 fixé d'avance. C'est le premier
+chiffre qui approche une portée statistique, et il est franchement négatif :
+−0,39 R par trade sur 19 trades. Un trade de plus ne renverserait pas ce signe.
+
+**S3 est à l'équilibre moins les frais** : 55,6 % de réussite pour −0,06 R par
+trade. La signature d'un setup sans edge qui paie le spread — pas d'un setup
+dangereux, mais pas d'un setup utile non plus.
+
+**S2 reste mort** : 1 signal sur le calibrage, 0 sur le test. Le déplacement du
+biais sur H4 ne l'a pas ranimé. À ce stade, l'hypothèse la plus économique est
+que la conjonction « impulsion de 1,5 × ATR en ≤ 6 bougies » et « retracement
+exactement entre 0,618 et 0,705 » est trop étroite pour l'or en M15.
+
+## K. Ce que ces chiffres NE disent pas
+
+Ils portent sur une base **M15**, pas M5 : le déclencheur d'entrée reste une
+clôture M15 (R4 non résolu) et l'ambiguïté intra-bougie porte toujours sur 15
+minutes. Les prix d'entrée sont donc dégradés par rapport à ce que le rulebook
+spécifie, ce qui pénalise mécaniquement les résultats sans qu'on sache de combien.

@@ -21,13 +21,27 @@ class RegardVersLeFutur(IndexError):
     """Une regle a tente de lire une donnee posterieure a la bougie courante."""
 
 
-class VueMarche:
-    __slots__ = ("_bougies", "_i", "_series")
+class UniteIndisponible(LookupError):
+    """L'unite de temps demandee n'a pas encore de bougie close."""
 
-    def __init__(self, bougies, i: int, series: dict | None = None):
+
+class VueMarche:
+    """Vue bornee sur l'unite de base, avec acces aux unites superieures.
+
+    `ut("H4")` renvoie une VueMarche sur les bougies H4, bornee a la derniere
+    H4 CLOSE au moment de la bougie de base courante. La garantie anti-futur
+    vaut donc a chaque unite de temps, pas seulement sur la base : une regle qui
+    lit du D1 ne peut pas plus voir demain qu'une regle qui lit du M5.
+    """
+
+    __slots__ = ("_bougies", "_i", "_series", "_unites")
+
+    def __init__(self, bougies, i: int, series: dict | None = None,
+                 unites: dict | None = None):
         self._bougies = bougies
         self._i = i
         self._series = series or {}
+        self._unites = unites or {}
 
     @property
     def indice(self) -> int:
@@ -61,6 +75,22 @@ class VueMarche:
         if nom not in self._series:
             raise KeyError(f"serie inconnue : {nom!r} (connues : {sorted(self._series)})")
         return self._series[nom][idx]
+
+    def ut(self, nom: str) -> "VueMarche":
+        """Vue sur une unite superieure, bornee a sa derniere bougie close."""
+        if nom not in self._unites:
+            raise KeyError(f"unite inconnue : {nom!r} "
+                           f"(connues : {sorted(self._unites)})")
+        bougies, idx, series = self._unites[nom]
+        j = idx[self._i]
+        if j < 0:
+            raise UniteIndisponible(
+                f"{nom} : aucune bougie close a {self.courante.ts}")
+        return VueMarche(bougies, j, series)
+
+    def a_unite(self, nom: str) -> bool:
+        """Vrai si l'unite a au moins une bougie close ici."""
+        return nom in self._unites and self._unites[nom][1][self._i] >= 0
 
     def fenetre(self, longueur: int):
         """Les `longueur` dernieres bougies, courante incluse, ordre chronologique."""

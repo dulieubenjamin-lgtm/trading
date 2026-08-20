@@ -20,7 +20,8 @@ from harnais.fuseau import verifier_decalage
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--cache", default="donnees/cache/XAUUSD-M15.csv")
+    ap.add_argument("--cache", default=None,
+                    help="par defaut le M5 s'il existe, sinon le M15")
     ap.add_argument("--regime", default="paris")
     ap.add_argument("--setups", default="S1,S2,S3")
     ap.add_argument("--debut", default=None, help="premiere date incluse (AAAA-MM-JJ)")
@@ -28,9 +29,15 @@ def main() -> int:
     a = ap.parse_args()
     setups = tuple(s.strip() for s in a.setups.split(",") if s.strip())
 
+    chemin = a.cache
+    if chemin is None:
+        m5 = Path("donnees/cache/XAUUSD-M5.csv")
+        chemin = str(m5) if m5.exists() else "donnees/cache/XAUUSD-M15.csv"
+
     print("=" * 68)
     print("1. CHARGEMENT")
-    brutes = cache.charger(a.cache)
+    print(f"   unite de base : {Path(chemin).stem.split('-')[-1]}")
+    brutes = cache.charger(chemin)
     if a.debut or a.fin:
         brutes = [x for x in brutes
                   if (a.debut is None or str(x.ts.date()) >= a.debut)
@@ -55,8 +62,10 @@ def main() -> int:
     print(f"   amplitude mediane {rap['amplitude_reference']:>6} $")
 
     print("\n4. WALK-FORWARD")
-    series = contexte.construire(propres, a.regime)
-    res = moteur.executer(propres, series, a.regime, setups)
+    ctx = contexte.construire(propres, a.regime)
+    print(f"   unites derivees : " + "  ".join(
+        f"{n} {len(ctx.unites[n][0])}" for n in ("M15", "H4", "D1")))
+    res = moteur.executer(propres, ctx, a.regime, setups)
     print(f"   {res.barres_parcourues} barres parcourues, {len(res.trades)} trades")
 
     if not res.trades:
