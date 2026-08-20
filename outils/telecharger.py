@@ -37,8 +37,8 @@ from pathlib import Path
 
 BASE = "https://api.twelvedata.com/time_series"
 SYMBOLE = "XAU/USD"
-INTERVALLE = "15min"
 MAX_POINTS = 5000          # plafond par requete, plan gratuit
+MINUTES = {"5min": 5, "15min": 15, "1h": 60}
 PAUSE = 8.0                # 8 requetes/min sur le plan gratuit -> 1 toutes les 8 s
 EN_TETE = "datetime;open;high;low;close"
 
@@ -62,22 +62,31 @@ def contexte_ssl() -> ssl.SSLContext:
         return ssl.create_default_context()
 
 
-def fenetres(mois: int):
-    """Decoupe la periode en tranches sous le plafond de points par requete."""
+def pas_jours(intervalle: str) -> int:
+    """Largeur de tranche tenant sous le plafond de points, avec 15 % de marge.
+
+    Elle DEPEND de l'intervalle : 5000 bougies valent ~52 jours en M15 mais
+    seulement ~17 en M5. Une largeur ecrite en dur tronquerait silencieusement
+    les tranches M5 — l'API renverrait ses 5000 derniers points de la fenetre et
+    le debut de chaque tranche manquerait, sans erreur.
+    """
+    return max(1, int(MAX_POINTS * MINUTES[intervalle] / 1440 * 0.85))
+
+
+def fenetres(mois: int, intervalle: str):
     fin = datetime.now(timezone.utc)
     debut = fin - timedelta(days=30 * mois)
-    # 5000 bougies de 15 min = ~52 jours. On prend 45 pour garder de la marge.
-    pas = timedelta(days=45)
+    pas = timedelta(days=pas_jours(intervalle))
     curseur = debut
     while curseur < fin:
         yield curseur, min(curseur + pas, fin)
         curseur += pas
 
 
-def tirer(cle: str, debut: datetime, fin: datetime) -> list[str]:
+def tirer(cle: str, debut: datetime, fin: datetime, intervalle: str) -> list[str]:
     params = urllib.parse.urlencode({
         "symbol": SYMBOLE,
-        "interval": INTERVALLE,
+        "interval": intervalle,
         "start_date": debut.strftime("%Y-%m-%d %H:%M:%S"),
         "end_date": fin.strftime("%Y-%m-%d %H:%M:%S"),
         "outputsize": MAX_POINTS,
@@ -101,7 +110,10 @@ def tirer(cle: str, debut: datetime, fin: datetime) -> list[str]:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--mois", type=int, default=7, help="profondeur en mois (defaut 7)")
-    ap.add_argument("--sortie", default="donnees/cache/XAUUSD-M15.csv")
+    ap.add_argument("--intervalle", default="15min", choices=sorted(MINUTES),
+                    help="unite de temps (defaut 15min)")
+    ap.add_argument("--sortie", default=None,
+                    help="par defaut donnees/cache/XAUUSD-<UT>.csv")
     args = ap.parse_args()
 
     # La cle peut venir de l'environnement ; sinon on la demande ICI, au moment
@@ -126,8 +138,10 @@ def main() -> int:
         print("La cle n'est jamais ecrite dans un fichier du depot.", file=sys.stderr)
         return 2
 
-    cible = Path(args.sortie)
+    nom = {"5min": "M5", "15min": "M15", "1h": "H1"}[args.intervalle]
+    cible = Path(args.sortie or f"donnees/cache/XAUUSD-{nom}.csv")
     cible.parent.mkdir(parents=True, exist_ok=True)
+    print(f"{SYMBOLE} {args.intervalle} sur {args.mois} mois -> {cible}")
 
     lignes: dict[str, str] = {}
     if cible.exists():
@@ -136,12 +150,14 @@ def main() -> int:
                 lignes[l.split(";")[0]] = l
     avant = len(lignes)
 
-    tranches = list(fenetres(args.mois))
+    tranches = list(fenetres(args.mois, args.intervalle))
+    print(f"{len(tranches)} requetes de {pas_jours(args.intervalle)} jours, "
+          f"~{PAUSE * (len(tranches) - 1):.0f} s")
     echecs_ssl = 0
     for n, (debut, fin) in enumerate(tranches, 1):
         print(f"[{n}/{len(tranches)}] {debut:%Y-%m-%d} -> {fin:%Y-%m-%d} ...", end=" ", flush=True)
         try:
-            recues = tirer(cle, debut, fin)
+            recues = tirer(cle, debut, fin, args.intervalle)
         except Exception as e:
             print(f"ECHEC : {e}")
             if "CERTIFICATE_VERIFY_FAILED" in str(e):

@@ -37,8 +37,33 @@ def _grouper(bougies, cle):
     return groupes
 
 
+def en_m15(bougies):
+    """M5 -> M15. Groupe par tranche de 15 minutes de l'heure."""
+    return _grouper(bougies, lambda b: b.ts.replace(
+        minute=(b.ts.minute // 15) * 15, second=0, microsecond=0))
+
+
 def en_h1(bougies):
     return _grouper(bougies, lambda b: b.ts.replace(minute=0, second=0, microsecond=0))
+
+
+def cle_h4(instant) -> str:
+    """Bloc H4 ancre sur la seance forex, pas sur minuit UTC.
+
+    La journee forex court de 17h00 New York a 17h00 New York : les six bougies
+    H4 demarrent donc a 17h, 21h, 01h, 05h, 09h et 13h heure de New York.
+
+    Decouper a minuit UTC — le reflexe naturel — placerait les frontieres H4 au
+    milieu de l'ouverture de Londres et au milieu de celle de New York, cassant
+    en deux les mouvements que ces bougies sont censees decrire.
+    """
+    local = instant.astimezone(NEW_YORK)
+    bloc = ((local.hour - 17) % 24) // 4
+    return f"{seance_forex(instant)}#{bloc}"
+
+
+def en_h4(bougies):
+    return _grouper(bougies, lambda b: cle_h4(b.ts))
 
 
 def seance_forex(instant) -> str:
