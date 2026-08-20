@@ -84,11 +84,22 @@ def verifier_decalage(bougies, tolerance=timedelta(minutes=30), minimum=100) -> 
     """Assertion : la fermeture hebdomadaire observee tombe-t-elle ou il faut ?
 
     Localise dans les donnees la derniere bougie reelle avant chaque plage de
-    marche ferme, et compare a la fermeture theorique. Leve FuseauIncoherent si
-    l'ecart depasse la tolerance.
+    marche ferme et compare a la fermeture theorique (vendredi 17h New York).
 
-    C'est le filet de securite : si Twelve Data change son fuseau par defaut,
-    on veut un echec bruyant, pas un backtest plausible et faux.
+    ON TESTE LA MEDIANE, PAS LE MAXIMUM. Une premiere version prenait le pire
+    ecart et bloquait le backtest sur les donnees reelles : deux semaines sur
+    vingt-sept montraient une fermeture avancee de 3-4 h. Ce n'etait pas une
+    erreur de fuseau mais deux jours feries americains (Juneteenth le 19/06,
+    Independence Day observe le 03/07) sur lesquels les marches US ferment tot.
+
+    Les deux defauts ne se ressemblent pas, et c'est ce qui permet de les
+    distinguer :
+      - un fuseau errone decale TOUTES les fermetures du MEME montant
+      - un ferie n'en decale QU'UNE, et toujours vers l'avant
+
+    D'ou : la mediane teste le fuseau, et les valeurs aberrantes sont remontees
+    telles quelles — elles designent des seances ecourtees, information utile
+    puisque le rulebook n'a pas de calendrier des feries (voir setups/ruptures.md).
     """
     from .nettoyage import est_degeneree, amplitude_reference
 
@@ -96,7 +107,7 @@ def verifier_decalage(bougies, tolerance=timedelta(minutes=30), minimum=100) -> 
         raise ValueError("echantillon trop court pour verifier le decalage")
 
     reference = amplitude_reference(bougies)
-    controles, ecarts = 0, []
+    controles, ecarts, dates = 0, [], []
 
     for precedente, suivante in zip(bougies, bougies[1:]):
         # Transition reelle -> degeneree : candidate a une fermeture hebdo.
@@ -110,6 +121,7 @@ def verifier_decalage(bougies, tolerance=timedelta(minutes=30), minimum=100) -> 
             continue
         controles += 1
         ecarts.append(ecart)
+        dates.append(precedente.ts.date())
 
     if controles == 0:
         raise FuseauIncoherent(
@@ -117,11 +129,21 @@ def verifier_decalage(bougies, tolerance=timedelta(minutes=30), minimum=100) -> 
             "le decalage. L'echantillon couvre-t-il au moins un week-end ?"
         )
 
-    pire = max(ecarts)
-    if pire > tolerance:
+    from statistics import median
+
+    mediane = median(ecarts)
+    if mediane > tolerance:
         raise FuseauIncoherent(
-            f"fermeture hebdomadaire decalee de {pire} par rapport au calendrier "
-            f"forex (tolerance {tolerance}). Le fuseau des etiquettes a "
-            f"probablement change — verifier avant tout backtest."
+            f"fermeture hebdomadaire decalee de {mediane} EN MEDIANE par rapport "
+            f"au calendrier forex (tolerance {tolerance}). Un decalage systematique "
+            f"signale un changement de fuseau des etiquettes — verifier avant tout "
+            f"backtest."
         )
-    return {"controles": controles, "ecart_max": pire}
+    return {
+        "controles": controles,
+        "ecart_median": mediane,
+        "ecart_max": max(ecarts),
+        "seances_ecourtees": sorted(
+            (d for d, e in zip(dates, ecarts) if e > tolerance), key=lambda x: x
+        ),
+    }
