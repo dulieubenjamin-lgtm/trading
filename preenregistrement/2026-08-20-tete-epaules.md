@@ -73,3 +73,45 @@ rien. **EUR/USD et l'indice sont les tests qui comptent** — classes d'actifs
 distinctes, participants distincts.
 
 Si seul XAG passe, le verdict est « non concluant », pas « confirmé ».
+
+---
+
+## Amendement, écrit avant réception de toute donnée EUR/USD
+
+**Motif : une erreur de modélisation possible, sans rapport avec le résultat.**
+
+La friction dépend de la volatilité *relative* de l'instrument. Le spread est
+modélisé à 1 point de base du prix ; ce qu'il coûte en fraction du risque dépend
+donc de la largeur de l'ATR rapportée au prix.
+
+- Or : ATR M15 ≈ 13 $ sur 4 400 $, soit ~30 points de base. Stop à 1,5 × ATR
+  → le spread pèse **~11 %** du risque.
+- EUR/USD : la volatilité relative est bien plus faible. Le même spread pourrait
+  peser **trois fois plus** du risque.
+
+Si c'est le cas, **aucun** setup ne peut atteindre un R moyen positif sur
+EUR/USD, quelle que soit sa qualité — la friction mangerait tout. La règle
+« R moyen > 0 » deviendrait alors un test de la structure de coût de
+l'instrument, pas de la figure.
+
+### Ce qui est ajouté, et pourquoi maintenant
+
+À la réception des données, **avant** d'examiner le moindre résultat de la
+figure, je mesurerai le ratio spread/risque de l'instrument et le R moyen du
+témoin aléatoire. Deux cas, tranchés d'avance :
+
+1. **Témoin achat > −0,25 R** → la profitabilité absolue reste atteignable.
+   La règle de décision d'origine s'applique **inchangée**.
+2. **Témoin achat ≤ −0,25 R** → la friction domine. Le critère devient
+   `z > 2,5` contre le témoin apparié, et le rapport mentionnera explicitement
+   que la profitabilité absolue est hors de portée avec ce modèle de coût.
+
+Ce seuil de −0,25 R est fixé maintenant, sans connaître la valeur réelle.
+
+### Ce que cet amendement ne fait pas
+
+Il n'assouplit rien sur l'or : le résultat XAU a été obtenu et jugé avec la règle
+d'origine. Il ne change pas non plus le nombre d'instruments requis, ni la
+pondération déclarée (XAG reste le test faible). Il traite un seul point : ne pas
+confondre « la figure ne marche pas » avec « le coût modélisé rend tout
+instrument peu volatil intradable ».
