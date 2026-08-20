@@ -20,10 +20,25 @@ class Marche:
     nom: str
     continu: bool          # True : ouvert 24/7, aucune fermeture hebdomadaire
     heure_ancre: int       # heure de New York ou demarre la journee (forex)
+    seuil_degenerescence: float = 0.15
+    """Fraction de l'amplitude mediane sous laquelle une bougie est tenue pour
+    synthetique.
+
+    LE SEUIL DEPEND DU MARCHE, et le confondre fausse l'analyse. Sur un marche a
+    seances, le flux COMBLE les fermetures avec un prix fige : un seuil genereux
+    les attrape. Sur un marche continu il n'y a rien a combler — verifie, la
+    couverture BTC est de 100 %. Le meme seuil de 15 % y rejetait 11 562 bougies
+    d'amplitude mediane 8 $ sur un actif a ~68 000 $ : des bougies CALMES mais
+    REELLES, concentrees entre 4h et 7h UTC. On aurait supprime la nuit
+    asiatique, c'est-a-dire precisement le regime calme qu'on cherche a mesurer.
+
+    En continu, seule une bougie strictement plate est tenue pour un defaut de
+    flux : 52 bougies sur 311 017.
+    """
 
 
-FOREX = Marche("forex", continu=False, heure_ancre=17)
-CONTINU = Marche("continu", continu=True, heure_ancre=0)
+FOREX = Marche("forex", continu=False, heure_ancre=17, seuil_degenerescence=0.15)
+CONTINU = Marche("continu", continu=True, heure_ancre=0, seuil_degenerescence=0.0)
 
 MARCHES = {"forex": FOREX, "continu": CONTINU, "24/7": CONTINU}
 

@@ -422,3 +422,79 @@ théorie prédisait, pas seulement le bon signe.
 Ce qu'on peut faire : **poser cette hypothèse comme la prochaine à tester**, sur
 des données neuves. Pas la retoucher, pas l'affiner sur ces 188 trades — la
 tester ailleurs.
+
+---
+
+# Septième passe — le test croisé sur BTC réfute l'hypothèse de régime (20/08)
+
+311 017 bougies BTC/USD M5, mêmes trois ans, même découpage calibrage/test,
+mêmes prédictions pré-enregistrées.
+
+## W. Deux adaptations obligatoires — et un piège évité de peu
+
+**Le harnais supposait un marché qui ferme.** Trois mécanismes en dépendaient, et
+les appliquer à BTC aurait produit un résultat faux sans lever d'erreur : le
+filtre calendrier aurait jeté ~29 % de vraies bougies, la journée forex bornée à
+17h New York n'a pas de sens en continu, et l'assertion de fuseau cherche une
+clôture hebdomadaire inexistante — remplacée par un contrôle de continuité
+(couverture 100 %, 2 trous, le plus grand de 55 minutes).
+
+**Le seuil de dégénérescence dépend du marché.** Le filtre d'amplitude, calibré
+pour attraper le remplissage synthétique du forex, rejetait **11 562 bougies BTC
+d'amplitude médiane 8 $** sur un actif à ~68 000 $ — des bougies *calmes mais
+réelles*, concentrées entre 4h et 7h UTC. On aurait supprimé la nuit asiatique,
+c'est-à-dire **précisément le régime calme qu'on cherchait à mesurer**. En
+continu, seule une bougie strictement plate compte comme défaut de flux : 52 sur
+311 017.
+
+C'est le piège le plus vicieux rencontré dans ce projet : un filtre légitime sur
+un marché, qui détruit la mesure sur un autre, en biaisant exactement la variable
+étudiée.
+
+## X. Une validation inattendue au passage
+
+La bande d'amplitude de S1, calibrée indépendamment sur chaque instrument :
+
+| | médiane du ratio | bande | éligibilité |
+|---|---|---|---|
+| XAU/USD | 0,317 | [0,25 ; 0,60] | 65 % |
+| BTC/USD | 0,313 | [0,22 ; 0,67] | 65 % |
+
+Le range asiatique vaut ~0,31 × ATR journalier sur deux marchés sans rapport.
+**C'est une propriété structurelle des marchés**, pas une particularité de l'or —
+et la seule régularité solide que ce projet ait établie.
+
+## Y. Le verdict : les deux prédictions s'inversent
+
+| | XAU/USD | BTC/USD |
+|---|---|---|
+| **S1** — corrélation volatilité/R | **+0,150** (t = 1,50) | **−0,058** (t = −0,60) |
+| **S3** — corrélation volatilité/R | **−0,141** (t = −1,31) | **+0,089** (t = +1,04) |
+
+**Les deux signes s'inversent.** Aucun n'est significatif nulle part : quatre
+mesures, tous les |t| sous 1,5, signes dispersés. C'est le portrait du bruit.
+
+### Pourquoi la défense « effet spécifique aux marchés à séances » ne tient pas
+
+C'était la lecture alternative annoncée avant le test : l'effet pourrait être réel
+mais propre aux marchés à séances, BTC n'ayant pas de session asiatique au sens
+où l'or en a une.
+
+Elle ne résiste pas à S3. **La mécanique de S3 ne dépend d'aucune séance** — un
+niveau H4 établi, une divergence MACD M15, un filtre ADX. Rien là-dedans n'a
+besoin de Londres ou de Tokyo. Si son effet de régime était structurel, il
+devrait survivre au changement d'instrument. Il s'inverse.
+
+L'explication la plus économique est donc la bonne : **le résultat sur l'or était
+du bruit.**
+
+## Z. Ce que ce test a fait gagner
+
+L'hypothèse de régime demandait 5 à 6 ans de données supplémentaires pour être
+tranchée sur l'or seul. Le test croisé l'a réfutée pour **un téléchargement et
+deux minutes de calcul**.
+
+C'est la leçon méthodologique de tout le projet : face à un effet non
+significatif, **changer de terrain coûte infiniment moins cher qu'attendre plus
+de données**. Et un effet qui ne survit pas au changement d'instrument n'aurait
+de toute façon pas survécu au marché.

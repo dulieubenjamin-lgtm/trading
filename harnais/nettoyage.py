@@ -51,8 +51,14 @@ def amplitude_reference(bougies, marche="forex") -> float:
     return median(ouvertes)
 
 
-def est_degeneree(bougie, reference: float) -> bool:
-    return bougie.amplitude < SEUIL_DEGENERESCENCE * reference
+def est_degeneree(bougie, reference: float, marche="forex") -> bool:
+    from .marche import resoudre
+
+    seuil = resoudre(marche).seuil_degenerescence
+    if seuil <= 0:
+        # Marche continu : seule une bougie strictement plate est un defaut.
+        return bougie.amplitude == 0
+    return bougie.amplitude < seuil * reference
 
 
 def filtrer(bougies, marche="forex"):
@@ -68,7 +74,7 @@ def filtrer(bougies, marche="forex"):
         if not continu and marche_ferme(b.ts):
             rejet_calendrier += 1
             continue
-        if est_degeneree(b, reference):
+        if est_degeneree(b, reference, marche):
             rejet_amplitude += 1
             continue
         propres.append(b)
