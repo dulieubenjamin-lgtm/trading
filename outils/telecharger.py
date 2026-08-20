@@ -328,8 +328,14 @@ def main() -> int:
         print("les tranches manquantes et fusionne sans doublon.")
     else:
         print("\nToutes les tranches sont passees. Etape suivante :")
-        print(f"\n    git add {cible.parent} && \\")
-        print(f"    git commit -m \"chore: cache {court} {nom}\" && git push\n")
+        print(f"\n    git add {cible}")
+        print(f"    git commit -m \"chore: cache {court} {nom}\"")
+        print("    git pull --rebase        # indispensable : le depot a pu bouger")
+        print("    git push\n")
+        print("    Le pull --rebase rejoue ton commit au-dessus des eventuels")
+        print("    commits distants. Sans lui, le push est refuse avec")
+        print("    \"! [rejected] (fetch first)\" — un message facile a manquer")
+        print("    quand il defile a la suite d'autres commandes.\n")
     return 0
 
 
