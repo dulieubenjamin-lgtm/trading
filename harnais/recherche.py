@@ -262,7 +262,8 @@ def _stop_initial(spec, i, base, biblio, sens):
 
 
 def simuler(spec, base, candidats, biblio, sens="achat",
-            max_trades_jour=2, spread_bp=SPREAD_BP, duree_max=DUREE_MAX) -> Resultat:
+            max_trades_jour=2, spread_bp=SPREAD_BP, duree_max=DUREE_MAX,
+            distances=None) -> Resultat:
     """Simule un setup a partir de son tableau de bougies candidates.
 
     Conventions, identiques a celles du moteur principal et toutes defavorables :
@@ -324,7 +325,13 @@ def simuler(spec, base, candidats, biblio, sens="achat",
                 i += 1
                 continue
 
-        stop = _stop_initial(spec, i_entree, base, biblio, sens)
+        if distances is not None:
+            # Distance imposee de l'exterieur : sert au test de placement, ou la
+            # meme distribution de largeurs est reassignee entre les trades.
+            d = distances.get(i_entree)
+            stop = None if d is None else base[i_entree].cloture - s * d
+        else:
+            stop = _stop_initial(spec, i_entree, base, biblio, sens)
         if stop is None:
             i += 1
             continue
@@ -520,3 +527,67 @@ def test_directionnel(spec, base, biblio, sens, tirages=40, graine=911):
             "delta_setup": delta_setup, "delta_hasard": m, "ecart_type": sd,
             "edge": delta_setup - m,
             "z": (delta_setup - m) / sd if sd else 0.0}
+
+
+def test_placement_stop(spec, base, biblio, sens, melanges=60, graine=777):
+    """Le placement du stop porte-t-il de l'information, a largeur egale ?
+
+    Comparer un stop structurel a un stop ATR confond DEUX effets : la largeur
+    (un stop plus large paie moins de spread, cf. la mesure du cout) et
+    l'adaptativite (le stop est-il large PRECISEMENT quand il faut ?).
+
+    Pour isoler l'adaptativite : on releve les distances reelles du stop
+    structurel trade par trade, puis on les REASSIGNE au hasard entre les trades.
+    Distribution de largeurs identique, memes bougies, meme tout — seul
+    l'appariement change. Ce qui reste est de l'information de placement.
+    """
+    idx = indices_signal(spec, base, biblio, sens)
+    if len(idx) < 50:
+        return None
+    sg = 1 if sens == "achat" else -1
+    candidats = [False] * len(base)
+    for i in idx:
+        candidats[i] = True
+
+    # Distances reelles du stop structurel, sur les bougies effectivement prises.
+    reel = simuler(spec, base, candidats, biblio, sens, max_trades_jour=2)
+    st_reel = reel.stats()
+    if not st_reel or st_reel["n"] < 30:
+        return None
+    pris = []
+    for i in idx:
+        stop = _stop_initial(spec, i, base, biblio, sens)
+        if stop is not None:
+            d = abs(base[i].cloture - stop)
+            if d > 0:
+                pris.append((i, d))
+    if len(pris) < 30:
+        return None
+
+    distances_reelles = {i: d for i, d in pris}
+    st_ancre = simuler(spec, base, candidats, biblio, sens, max_trades_jour=2,
+                       distances=distances_reelles).stats()
+
+    etat = graine
+    melanges_r = []
+    valeurs = [d for _, d in pris]
+    for _ in range(melanges):
+        v = list(valeurs)
+        for k in range(len(v) - 1, 0, -1):          # melange de Fisher-Yates
+            etat = (etat * 1103515245 + 12345) % (2 ** 31)
+            j = etat % (k + 1)
+            v[k], v[j] = v[j], v[k]
+        melange = {i: v[k] for k, (i, _) in enumerate(pris)}
+        st = simuler(spec, base, candidats, biblio, sens, max_trades_jour=2,
+                     distances=melange).stats()
+        if st and st["n"] >= 20:
+            melanges_r.append(st["r_moyen"])
+    if len(melanges_r) < 10:
+        return None
+    m = sum(melanges_r) / len(melanges_r)
+    sd = (sum((x - m) ** 2 for x in melanges_r) / (len(melanges_r) - 1)) ** 0.5
+    return {"n": st_ancre["n"], "r_ancre": st_ancre["r_moyen"],
+            "r_melange": m, "ecart_type": sd,
+            "gain": st_ancre["r_moyen"] - m,
+            "z": (st_ancre["r_moyen"] - m) / sd if sd else 0.0,
+            "largeur_mediane": sorted(valeurs)[len(valeurs) // 2]}

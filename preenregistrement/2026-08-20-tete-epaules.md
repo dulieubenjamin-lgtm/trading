@@ -180,3 +180,62 @@ faudrait produire +0,46 R avant de gagner le premier centime.
 
 C'est une propriété de l'instrument, pas un jugement sur la méthode — et c'est
 la découverte la plus actionnable de ce test.
+
+---
+
+# Test de suivi — le placement du stop (20/08)
+
+## Ce qui était annoncé
+
+Le nettoyage avait révélé que la tête-épaules inversée passait de +0,356 R (stop
+structurel) à +0,217 R (stop symétrique). J'en avais tiré une piste : **placer le
+stop derrière la structure vaudrait ~0,14 R par trade**, applicable à n'importe
+quel setup.
+
+## Le test
+
+Comparer un stop structurel à un stop ATR confond deux effets — la largeur (un
+stop large paie moins de spread) et l'adaptativité (le stop est-il large
+*précisément quand il faut* ?).
+
+Pour isoler l'adaptativité seule : relever les distances réelles du stop
+structurel trade par trade, puis les **réassigner au hasard entre les trades**.
+Distribution de largeurs identique, mêmes bougies, même tout — seul l'appariement
+change.
+
+## Résultat
+
+| setup | XAU | EUR/USD | BTC |
+|---|---|---|---|
+| **tête-épaules inversée** | **+0,144 (z +3,10)** | +0,019 | +0,001 |
+| double creux | −0,007 | +0,009 | −0,048 |
+| double sommet | +0,044 | +0,003 | −0,005 |
+| drapeau haussier | −0,023 | −0,009 | +0,007 |
+
+**Une cellule sur douze.** La même que d'habitude.
+
+## Ce que ça change
+
+La piste annoncée n'existe pas. **Les 0,14 R ne sont pas une propriété
+transférable du placement structurel** — sinon ils apparaîtraient sur les autres
+figures et les autres instruments. Ils n'apparaissent nulle part ailleurs.
+
+C'est **la même anomalie**, vue sous un autre angle. Direction, placement du
+stop : ces mesures portent toutes sur les mêmes 274 trades. Elles ne se
+confirment pas l'une l'autre — elles se répètent.
+
+C'est précisément le piège qui fait croire à un système : multiplier les angles
+sur un même échantillon et prendre la cohérence des résultats pour de
+l'accumulation de preuve.
+
+## Où cela laisse la session
+
+Un seul objet a résisté à tout : la tête-épaules inversée sur XAU, z entre 2,6 et
+3,1 selon l'angle, sur 274 trades. Elle ne franchit aucun seuil corrigé, ne
+transfère à aucun autre instrument, et toutes ses mesures sont redondantes entre
+elles.
+
+**Aucun redécoupage de ces 274 trades ne tranchera.** Seules des données neuves le
+peuvent : du papier live sur XAU, à spécification gelée, jusqu'à 200 trades
+inédits. Environ deux ans au rythme observé — ou une donnée que ce projet n'a
+jamais eue, le carnet d'ordres.
