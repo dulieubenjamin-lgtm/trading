@@ -3,8 +3,10 @@
 A LANCER SUR TA MACHINE, pas depuis une session Claude distante : le conteneur
 distant n'a pas d'acces reseau vers api.twelvedata.com (politique d'egress).
 
-    export TWELVEDATA_API_KEY="ta_cle"
     python3 outils/telecharger.py --mois 7
+
+Le script demande la cle si elle n'est pas dans l'environnement. Elle n'est
+jamais ecrite dans un fichier du depot.
 
 Puis commiter le cache produit : c'est lui, et lui seul, que lit le harnais.
 
@@ -22,6 +24,7 @@ UTC ne dispense pas de verifier qu'on l'a bien recu.
 from __future__ import annotations
 
 import argparse
+import getpass
 import json
 import os
 import sys
@@ -80,10 +83,26 @@ def main() -> int:
     ap.add_argument("--sortie", default="donnees/cache/XAUUSD-M15.csv")
     args = ap.parse_args()
 
-    cle = os.environ.get("TWELVEDATA_API_KEY")
+    # La cle peut venir de l'environnement ; sinon on la demande ICI, au moment
+    # ou on en a besoin. Une premiere version exigeait un `read -s` prealable :
+    # colle dans un bloc multi-ligne, ce read avale la ligne suivante du bloc au
+    # lieu d'attendre une saisie, et l'echec arrive plus loin, ailleurs, sans
+    # rapport visible avec sa cause.
+    cle = (os.environ.get("TWELVEDATA_API_KEY") or "").strip()
+    if not cle and sys.stdin.isatty():
+        print("Cle API Twelve Data (la saisie reste invisible, c'est normal).")
+        print("Elle se trouve sur https://twelvedata.com/ -> Log in -> section API Key.")
+        try:
+            cle = getpass.getpass("Cle : ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            return 2
     if not cle:
-        print("TWELVEDATA_API_KEY absente de l'environnement.", file=sys.stderr)
-        print("La cle ne doit jamais etre ecrite dans un fichier du depot.", file=sys.stderr)
+        print("Aucune cle fournie.", file=sys.stderr)
+        print("Recupere-la sur https://twelvedata.com/ (plan Basic, gratuit),",
+              file=sys.stderr)
+        print("puis relance : python3 outils/telecharger.py --mois 7", file=sys.stderr)
+        print("La cle n'est jamais ecrite dans un fichier du depot.", file=sys.stderr)
         return 2
 
     cible = Path(args.sortie)
