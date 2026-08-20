@@ -34,12 +34,26 @@ ALIAS = {
     "atr_ratio": "atr_relatif", "ratio_atr": "atr_relatif",
     "taille_bougie": "taille_relative", "asymetrie_meches": "asymetrie",
     "heure": "heure_utc", "ecart_type_prix": "ecart_type",
+    "zscore_prix": "zscore", "z_score": "zscore", "stochastique": "stoch_k",
+    "range_asiatique_haut": "range_horaire_haut",
+    "range_asiatique_bas": "range_horaire_bas",
     "moyenne_mobile": "sma", "ema_rapide": "ema", "ema_lente": "ema",
 }
 ALIAS_OP = {"<": "<", ">": ">", "<=": "<=", ">=": ">=",
             "inferieur": "<", "superieur": ">",
             "croise_au_dessus": "croise_haut", "croise_en_dessous": "croise_bas",
             "cross_up": "croise_haut", "cross_down": "croise_bas"}
+
+
+def _heure_decimale(v):
+    """Accepte 8, 8.5, "08:00" ou "8h30" et rend une heure decimale."""
+    if isinstance(v, (int, float)):
+        return float(v)
+    txt = str(v).strip().replace("h", ":")
+    if ":" in txt:
+        h, _, m = txt.partition(":")
+        return int(h) + (int(m or 0) / 60)
+    return float(txt)
 
 
 def _normaliser_terme(t):
@@ -53,6 +67,9 @@ def _normaliser_terme(t):
         t["ut"] = {"M1": "M5", "M30": "M15", "H1": "H4", "D": "D1"}[t["ut"]]
     if "params" in t and t["params"] is None:
         t.pop("params")
+    # Les plages horaires arrivent parfois en "08:00" plutot qu'en decimal.
+    if t.get("ind") in ("range_horaire_haut", "range_horaire_bas") and t.get("params"):
+        t["params"] = [_heure_decimale(x) for x in t["params"]]
     return t
 
 
@@ -64,6 +81,17 @@ def normaliser(spec):
                       "op": ALIAS_OP.get(c.get("op"), c.get("op")),
                       "droite": _normaliser_terme(c["droite"])})
     s["conditions"] = conds
+    # "06:30-11:00" en un seul element au lieu de deux.
+    f = s.get("fenetre_horaire")
+    if isinstance(f, list) and len(f) == 1 and "-" in str(f[0]):
+        s["fenetre_horaire"] = str(f[0]).split("-", 1)
+    f = s.get("fenetre_horaire")
+    if isinstance(f, list) and len(f) == 2:
+        try:
+            a, b = _heure_decimale(f[0]), _heure_decimale(f[1])
+            s["fenetre_horaire"] = None if (a <= 0 and b >= 24) else [f"{a:05.2f}", f"{b:05.2f}"]
+        except (ValueError, TypeError):
+            s["fenetre_horaire"] = None
     s.setdefault("tp_r", 2.0)
     s.setdefault("stop", {"type": "atr", "ut": "M15", "mult": 1.5})
     return s

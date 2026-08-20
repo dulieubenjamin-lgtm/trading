@@ -167,3 +167,28 @@ def asymetrie_meches(bougies):
     """
     return [None if not b.amplitude else (b.meche_basse - b.meche_haute) / b.amplitude
             for b in bougies]
+
+
+def range_horaire(bougies, heure_debut: float = 0.0, heure_fin: float = 7.0):
+    """Plus haut / plus bas d'une plage horaire UTC du jour, expose une fois close.
+
+    Generalisation du range asiatique : la plage est un parametre. La valeur reste
+    None pendant la formation du range et jusqu'a sa cloture, de sorte qu'aucune
+    regle ne peut connaitre un range en cours de constitution.
+
+    Une fois la plage close, la valeur reste disponible jusqu'a la fin de la
+    journee UTC — c'est ce qui permet aux setups de cassure de s'y referer toute
+    la seance.
+    """
+    hauts, bas = [None] * len(bougies), [None] * len(bougies)
+    accumule = {}
+    for i, b in enumerate(bougies):
+        jour = b.ts.date()
+        h = b.ts.hour + b.ts.minute / 60
+        if heure_debut <= h < heure_fin:
+            hh, bb = accumule.get(jour, (None, None))
+            accumule[jour] = (b.haut if hh is None else max(hh, b.haut),
+                              b.bas if bb is None else min(bb, b.bas))
+        elif h >= heure_fin:
+            hauts[i], bas[i] = accumule.get(jour, (None, None))
+    return hauts, bas

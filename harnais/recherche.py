@@ -114,6 +114,9 @@ class Bibliotheque:
             n = p[0] if p else 20
             h, bs = ie.donchian(b, n)
             return h if nom == "plus_haut" else bs
+        if nom in ("range_horaire_haut", "range_horaire_bas"):
+            h, bs = ie.range_horaire(b, *(p or [0.0, 7.0]))
+            return h if nom == "range_horaire_haut" else bs
         if nom == "heure_utc":
             return [x.ts.hour + x.ts.minute / 60 for x in b]
         raise SpecInvalide(f"indicateur inconnu : {nom!r}")
@@ -264,8 +267,7 @@ def simuler(spec, base, candidats, biblio, sens="achat",
     fenetre = spec.get("fenetre_horaire")
     h_min = h_max = None
     if fenetre and len(fenetre) == 2:
-        h_min = int(fenetre[0][:2]) + int(fenetre[0][3:5]) / 60
-        h_max = int(fenetre[1][:2]) + int(fenetre[1][3:5]) / 60
+        h_min, h_max = float(fenetre[0]), float(fenetre[1])
 
     jour_courant, pris_ce_jour = None, 0
     jours = set()
@@ -285,20 +287,47 @@ def simuler(spec, base, candidats, biblio, sens="achat",
                 continue
         res.signaux += 1
 
-        stop = _stop_initial(spec, i, base, biblio, sens)
+        # ENTREE EN REPLI. La mesure des excursions montre que les setups a
+        # indicateurs lisent la direction MIEUX que le hasard sur douze heures
+        # (ratio favorable/adverse 1,27-1,29 contre 1,17), mais que le
+        # contre-mouvement arrive AVANT le mouvement favorable et prend le stop.
+        # Entrer apres avoir laisse ce contre-mouvement se produire teste
+        # directement ce diagnostic.
+        repli = float(spec.get("repli_atr", 0) or 0)
+        i_entree = i
+        if repli > 0:
+            serie_atr = biblio.serie("atr", "M15", [14])
+            a = serie_atr[i]
+            if not a:
+                i += 1
+                continue
+            cible = base[i].cloture - s * repli * a
+            i_entree = None
+            for k in range(i + 1, min(i + 1 + int(spec.get("repli_bougies", 36)), n)):
+                x = base[k]
+                atteint = (x.bas <= cible) if s > 0 else (x.haut >= cible)
+                if atteint:
+                    i_entree = k
+                    break
+            if i_entree is None:
+                i += 1
+                continue
+
+        stop = _stop_initial(spec, i_entree, base, biblio, sens)
         if stop is None:
             i += 1
             continue
-        cout = b.cloture * spread_bp / 10000
-        entree = b.cloture + s * cout
+        be = base[i_entree]
+        cout = be.cloture * spread_bp / 10000
+        entree = be.cloture + s * cout
         risque = abs(entree - stop)
         if risque <= 0:
             i += 1
             continue
         objectif = entree + s * tp_r * risque
-        limite = b.ts + duree_max
+        limite = be.ts + duree_max
 
-        j, sortie = i + 1, None
+        j, sortie = i_entree + 1, None
         while j < n:
             x = base[j]
             touche_stop = (x.bas <= stop) if s > 0 else (x.haut >= stop)

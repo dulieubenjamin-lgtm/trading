@@ -498,3 +498,105 @@ C'est la leçon méthodologique de tout le projet : face à un effet non
 significatif, **changer de terrain coûte infiniment moins cher qu'attendre plus
 de données**. Et un effet qui ne survit pas au changement d'instrument n'aurait
 de toute façon pas survécu au marché.
+
+---
+
+# Huitième passe — recherche systématique de setups (20/08)
+
+63 spécifications testées sur XAU : 51 proposées par huit familles d'agents
+indépendants, 12 de référence. Objectif : 2R, 1 à 2 trades/jour, 3 indicateurs
+maximum, et l'exigence de pouvoir accumuler 200+ trades pour faire ses preuves.
+
+## AA. Le spread est le coût dominant, et il dépend du stop
+
+60 setups à entrée **pseudo-aléatoire**, même structure, donnent la distribution
+empirique du « aucun edge ». Ils sont tous négatifs :
+
+| stop | R moyen (hasard) | spread / risque |
+|---|---|---|
+| 0,8 × ATR | −0,265 | 21,6 % |
+| 1,5 × ATR | −0,157 | 11,5 % |
+| 3,0 × ATR | −0,076 | 5,8 % |
+
+Un stop à 1,5 × ATR M15 **offre 11,5 % du risque au spread à chaque trade**.
+Pour dégager +0,20 R net, un setup doit produire +0,36 R bruts. Cette marche
+compte davantage que le choix des indicateurs.
+
+Piège associé : la réussite qui monte à 39-41 % sur les stops larges vient des
+**sorties forcées à 12 h**, qui se répartissent près de l'entrée. Le taux de
+réussite n'est pas comparable d'une largeur de stop à l'autre.
+
+## BB. Le piège de la dérive — deux faux gagnants évités
+
+Premier passage avec un témoin mélangeant achats et ventes : deux candidats
+ressortaient à **+3,70 et +3,17 écarts-types**. De quoi conclure à une trouvaille.
+
+Mesure de contrôle : l'écart entre entrées longues et courtes **purement
+aléatoires** vaut **+0,107 R** (année 1) et **+0,128 R** (année 2). C'est la
+hausse de l'or, +29 % puis +38 %.
+
+Un témoin mixte **crédite donc à tout setup acheteur la tendance du marché comme
+si c'était son edge** — environ 1,2 écart-type offert. Recalculés contre un
+témoin du même sens et de la même fenêtre, les deux « gagnants » retombent à
++1,2 et +0,9, et ne passent plus la fenêtre de recherche.
+
+**Zéro survivant sur 63 spécifications et 79 tests.**
+
+## CC. Les candidats font PIRE que le hasard
+
+Avec un témoin stabilisé (320 tirages, moyenne −0,071, écart-type 0,107) :
+
+| | observé | attendu par pur hasard |
+|---|---|---|
+| candidats avec z > 0 | **29 %** | 50 % |
+| candidats avec z > 1 | **4 %** | 16 % |
+| z médian | **−0,62** | 0,00 |
+
+Ce n'est pas une absence d'edge, c'est un edge négatif.
+
+## DD. Le mécanisme : ils voient juste, ils entrent trop tôt
+
+Excursion sur les 12 h suivant le signal, en multiples d'ATR :
+
+| origine des entrées | favorable | adverse | ratio |
+|---|---|---|---|
+| hasard | 3,38 | 2,88 | **1,17** |
+| Rejet de Keltner | 4,00 | 3,09 | **1,29** |
+| RSI survente | 3,28 | 2,58 | **1,27** |
+| Cassure Donchian | 3,78 | 2,97 | **1,27** |
+
+**Les setups lisent la direction MIEUX que le hasard.** Mais le backtest compte
+la *première* touche : le contre-mouvement arrive avant le mouvement favorable et
+prend le stop. L'échec est dans le **timing d'entrée**, pas dans la lecture.
+
+## EE. Corriger le timing n'y change rien — et la façon dont ça échoue compte
+
+Entrée différée jusqu'à un repli de X × ATR contre le signal :
+
+| repli | z médian | z > 1 | meilleur z |
+|---|---|---|---|
+| 0 | −0,60 | 2 % | +1,34 |
+| 0,3 × ATR | −0,72 | 20 % | +2,66 |
+| 1,0 × ATR | −0,77 | 26 % | +2,66 |
+
+Le **meilleur** résultat double, la **médiane** ne bouge pas. Signature de la
+variance ajoutée, pas de l'edge : moins de trades par candidat, queues plus
+grasses des deux côtés. **Un réglage qui améliore le maximum sans déplacer la
+médiane n'a rien amélioré du tout** — c'est exactement ainsi qu'on fabrique un
+système surajusté en croyant l'optimiser.
+
+## FF. Ce qu'il faut retenir de cette recherche
+
+Le contre-mouvement adverse n'est pas un défaut d'exécution à corriger : c'est
+**le prix du signal**. L'information portée par un indicateur est déjà dans le
+prix au moment où il la donne ; ce qui reste à parcourir ne couvre ni le spread
+ni le risque assumé.
+
+Trois protections ont chacune renversé une conclusion :
+- le **témoin aléatoire** a déplacé le point de comparaison de 0 à −0,157 R
+- l'**appariement par sens** a supprimé deux faux gagnants à +3,7 et +3,2
+- le **suivi de la médiane** plutôt que du maximum a démasqué la fausse
+  amélioration de l'entrée en repli
+
+Aucune n'est optionnelle. Sans elles, cette recherche aurait produit un système
+d'apparence excellente, et faux.

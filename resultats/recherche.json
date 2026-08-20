@@ -1,5 +1,634 @@
 {
  "recherche": {
+  "Detente ATR M15 puis impulsion M5|achat": {
+   "n": 58,
+   "r_moyen": -0.3672678576848657,
+   "ecart_type": 1.2945461811735945,
+   "err_type": 0.1699822412220808,
+   "t": -2.160624869071072,
+   "reussite": 24.137931034482758,
+   "r_total": -21.30153574572221,
+   "trades_par_jour": 0.1895424836601307
+  },
+  "Detente ATR M15 puis impulsion M5|vente": {
+   "n": 547,
+   "r_moyen": -0.23734616621677687,
+   "ecart_type": 1.3256086657678177,
+   "err_type": 0.05667893370615889,
+   "t": -4.187555246668061,
+   "reussite": 29.06764168190128,
+   "r_total": -129.82835292057695,
+   "trades_par_jour": 1.7875816993464053,
+   "z_temoin": -1.0648043155561318
+  },
+  "Squeeze Bollinger dans Keltner M15 - bougie d expansion|achat": {
+   "n": 233,
+   "r_moyen": -0.16905714305543773,
+   "ecart_type": 1.4055079204221497,
+   "err_type": 0.09207788535551016,
+   "t": -1.8360233013900438,
+   "reussite": 35.622317596566525,
+   "r_total": -39.39031433191699,
+   "trades_par_jour": 0.761437908496732,
+   "z_temoin": -0.8881884632422682
+  },
+  "Squeeze Bollinger dans Keltner M15 - bougie d expansion|vente": {
+   "n": 504,
+   "r_moyen": -0.5337103450156724,
+   "ecart_type": 1.3507857685323512,
+   "err_type": 0.06016878034259747,
+   "t": -8.87022043619228,
+   "reussite": 25.0,
+   "r_total": -268.9900138878989,
+   "trades_par_jour": 1.6470588235294117,
+   "z_temoin": -6.424990043670992
+  },
+  "Cassure Donchian 24 apres range resserre - achat|achat": {
+   "n": 371,
+   "r_moyen": -0.14571740090854018,
+   "ecart_type": 1.372905607474394,
+   "err_type": 0.07127770765995337,
+   "t": -2.04436149383084,
+   "reussite": 32.075471698113205,
+   "r_total": -54.06115573706841,
+   "trades_par_jour": 1.2124183006535947,
+   "z_temoin": -0.6759493923062995
+  },
+  "Cassure Donchian 24 apres range resserre - vente|vente": {
+   "n": 310,
+   "r_moyen": -0.23283208848877004,
+   "ecart_type": 1.3424033227078198,
+   "err_type": 0.07624338534644878,
+   "t": -3.0538005025719226,
+   "reussite": 28.70967741935484,
+   "r_total": -72.17794743151872,
+   "trades_par_jour": 1.0130718954248366,
+   "z_temoin": -0.983160524760206
+  },
+  "Compression H4 resolue par l expansion M15|achat": {
+   "n": 189,
+   "r_moyen": 0.042393890128764954,
+   "ecart_type": 1.2767288758729682,
+   "err_type": 0.09286836056545644,
+   "t": 0.4564944386940529,
+   "reussite": 42.32804232804233,
+   "r_total": 8.012445234336576,
+   "trades_par_jour": 0.6176470588235294
+  },
+  "Expansion d ouverture de Londres apres nuit calme|achat": {
+   "n": 59,
+   "r_moyen": -0.020906858186562703,
+   "ecart_type": 1.450918200579461,
+   "err_type": 0.1888934604556966,
+   "t": -0.11068068813036666,
+   "reussite": 35.59322033898305,
+   "r_total": -1.2335046330071995,
+   "trades_par_jour": 0.19281045751633988
+  },
+  "Expansion d ouverture de Londres apres nuit calme|vente": {
+   "n": 259,
+   "r_moyen": -0.12480041663959814,
+   "ecart_type": 1.393688181622662,
+   "err_type": 0.08659956992935115,
+   "t": -1.4411205129703488,
+   "reussite": 31.66023166023166,
+   "r_total": -32.32330790965592,
+   "trades_par_jour": 0.8464052287581699,
+   "z_temoin": 0.9707524885370586
+  },
+  "Fade bande basse M15 sans tendance|achat": {
+   "n": 378,
+   "r_moyen": -0.5923483602464463,
+   "ecart_type": 1.3686810344330023,
+   "err_type": 0.07039735621419783,
+   "t": -8.41435519885306,
+   "reussite": 26.455026455026456,
+   "r_total": -223.9076801731567,
+   "trades_par_jour": 1.2352941176470589,
+   "z_temoin": -4.737371290821916
+  },
+  "Fade bande haute M15 sans tendance|vente": {
+   "n": 375,
+   "r_moyen": -0.7736148342392447,
+   "ecart_type": 1.26504947679631,
+   "err_type": 0.06532687407680687,
+   "t": -11.842214175588461,
+   "reussite": 19.733333333333334,
+   "r_total": -290.10556283971675,
+   "trades_par_jour": 1.2254901960784315,
+   "z_temoin": -10.764018547245563
+  },
+  "Z-score 2 sigma sans expansion de volatilite|achat": {
+   "n": 215,
+   "r_moyen": -0.04027001775300911,
+   "ecart_type": 1.4158994942727998,
+   "err_type": 0.09656354403531556,
+   "t": -0.41703127360654263,
+   "reussite": 34.883720930232556,
+   "r_total": -8.65805381689696,
+   "trades_par_jour": 0.7026143790849673,
+   "z_temoin": 0.28293243649462035
+  },
+  "Sur-extension Keltner haute fadee|vente": {
+   "n": 214,
+   "r_moyen": -0.20316171608561046,
+   "ecart_type": 1.3672067111839195,
+   "err_type": 0.09346032670990007,
+   "t": -2.1737749399937627,
+   "reussite": 29.439252336448597,
+   "r_total": -43.47660724232064,
+   "trades_par_jour": 0.6993464052287581,
+   "z_temoin": -0.4465278340355004
+  },
+  "Balayage du plancher de range 24h|achat": {
+   "n": 232,
+   "r_moyen": -0.548627881410452,
+   "ecart_type": 1.374294565174472,
+   "err_type": 0.0902268585257817,
+   "t": -6.080538438049302,
+   "reussite": 26.29310344827586,
+   "r_total": -127.28166848722486,
+   "trades_par_jour": 0.7581699346405228,
+   "z_temoin": -4.339800754239937
+  },
+  "CCI extreme fade en regime calme H4|vente": {
+   "n": 293,
+   "r_moyen": -0.2758771408594823,
+   "ecart_type": 1.3302556263321574,
+   "err_type": 0.07771436348209931,
+   "t": -3.5498861278459506,
+   "reussite": 26.962457337883958,
+   "r_total": -80.83200227182832,
+   "trades_par_jour": 0.9575163398692811,
+   "z_temoin": -1.7616941394451815
+  },
+  "Repli sur EMA50 M15 sous alignement M15/H4|achat": {
+   "n": 259,
+   "r_moyen": -0.18979566981558027,
+   "ecart_type": 1.3474611377123635,
+   "err_type": 0.08372716118360421,
+   "t": -2.2668351241406572,
+   "reussite": 30.115830115830114,
+   "r_total": -49.15707848223529,
+   "trades_par_jour": 0.8464052287581699,
+   "z_temoin": -1.0767734794969765
+  },
+  "Cassure du plus-haut 24 barres M15 en tendance H4 et volatil|achat": {
+   "n": 181,
+   "r_moyen": -0.007364856391174243,
+   "ecart_type": 1.1432242282531375,
+   "err_type": 0.08497518767084915,
+   "t": -0.08667066932175505,
+   "reussite": 41.988950276243095,
+   "r_total": -1.333039006802538,
+   "trades_par_jour": 0.5915032679738562
+  },
+  "Croisement MACD M15 dans le sens de la pente EMA50 H4|achat": {
+   "n": 12,
+   "r_moyen": -0.05465660462072277,
+   "ecart_type": 1.4748503202081231,
+   "err_type": 0.42575261469328285,
+   "t": -0.1283764391208684,
+   "reussite": 33.333333333333336,
+   "r_total": -0.6558792554486732,
+   "trades_par_jour": 0.0392156862745098
+  },
+  "Croisement MACD M15 dans le sens de la pente EMA50 H4|vente": {
+   "n": 8,
+   "r_moyen": -0.8944517741906323,
+   "ecart_type": 0.4827592169673491,
+   "err_type": 0.17068115799896016,
+   "t": -5.240483394166341,
+   "reussite": 12.5,
+   "r_total": -7.155614193525058,
+   "trades_par_jour": 0.026143790849673203
+  },
+  "Repli H4 dans une tendance journaliere|achat": {
+   "n": 66,
+   "r_moyen": -0.1159765399678762,
+   "ecart_type": 1.0938885899190922,
+   "err_type": 0.13464837749842093,
+   "t": -0.8613289080979554,
+   "reussite": 43.93939393939394,
+   "r_total": -7.654451637879829,
+   "trades_par_jour": 0.21568627450980393
+  },
+  "Expansion apres compression de Bollinger en tendance M15|achat": {
+   "n": 280,
+   "r_moyen": 0.0613099509424999,
+   "ecart_type": 1.3168313450960842,
+   "err_type": 0.07869572486635659,
+   "t": 0.7790760050386253,
+   "reussite": 41.07142857142857,
+   "r_total": 17.166786263899972,
+   "trades_par_jour": 0.9150326797385621,
+   "z_temoin": 1.2066460767717213
+  },
+  "Reprise CCI apres purge de court terme en tendance montante|achat": {
+   "n": 60,
+   "r_moyen": -0.10088668730279089,
+   "ecart_type": 1.3710651110334797,
+   "err_type": 0.17700374471995634,
+   "t": -0.5699692255799851,
+   "reussite": 31.666666666666668,
+   "r_total": -6.053201238167453,
+   "trades_par_jour": 0.19607843137254902
+  },
+  "Reprise CCI apres purge de court terme en tendance montante|vente": {
+   "n": 29,
+   "r_moyen": 0.1101595412615147,
+   "ecart_type": 1.4632292882123203,
+   "err_type": 0.27171485750515373,
+   "t": 0.40542332603002856,
+   "reussite": 41.37931034482759,
+   "r_total": 3.194626696583926,
+   "trades_par_jour": 0.09477124183006536
+  },
+  "Cassure de la fourchette asiatique a l'ouverture de Londres|achat": {
+   "n": 101,
+   "r_moyen": -0.24557471360871186,
+   "ecart_type": 1.3522730899700435,
+   "err_type": 0.1345562015840372,
+   "t": -1.8250716854201474,
+   "reussite": 27.722772277227723,
+   "r_total": -24.803046074479898,
+   "trades_par_jour": 0.3300653594771242
+  },
+  "Faux depart de Londres \u2014 retour dans la fourchette asiatique|achat": {
+   "n": 51,
+   "r_moyen": -0.3573105042881762,
+   "ecart_type": 1.414269587900942,
+   "err_type": 0.19803735373841896,
+   "t": -1.8042581237483908,
+   "reussite": 31.372549019607842,
+   "r_total": -18.222835718696984,
+   "trades_par_jour": 0.16666666666666666
+  },
+  "Faux depart de Londres \u2014 retour dans la fourchette asiatique|vente": {
+   "n": 104,
+   "r_moyen": -0.4926030848236313,
+   "ecart_type": 1.405444588509397,
+   "err_type": 0.13781518042466917,
+   "t": -3.5743746320666894,
+   "reussite": 27.884615384615383,
+   "r_total": -51.230720821657656,
+   "trades_par_jour": 0.33986928104575165
+  },
+  "Cassure de la fourchette pre-New York|achat": {
+   "n": 195,
+   "r_moyen": 0.023230285642437138,
+   "ecart_type": 1.3873302465276776,
+   "err_type": 0.09934878247432632,
+   "t": 0.23382556951254335,
+   "reussite": 38.97435897435897,
+   "r_total": 4.529905700275242,
+   "trades_par_jour": 0.6372549019607843
+  },
+  "Rejet d'extreme 24 h dans la fenetre du fixing de Londres|achat": {
+   "n": 101,
+   "r_moyen": 0.008290517380029913,
+   "ecart_type": 1.1839902782095115,
+   "err_type": 0.11781143596655357,
+   "t": 0.07037107486223641,
+   "reussite": 40.59405940594059,
+   "r_total": 0.8373422553830212,
+   "trades_par_jour": 0.3300653594771242
+  },
+  "Premier repli apres l'impulsion de Londres|achat": {
+   "n": 66,
+   "r_moyen": -0.4314523327439738,
+   "ecart_type": 1.3257580065472465,
+   "err_type": 0.16318952970368852,
+   "t": -2.643872640158861,
+   "reussite": 25.757575757575758,
+   "r_total": -28.47585396110227,
+   "trades_par_jour": 0.21568627450980393
+  },
+  "Premier repli apres l'impulsion de Londres|vente": {
+   "n": 115,
+   "r_moyen": -0.6274884913335914,
+   "ecart_type": 1.260656112955844,
+   "err_type": 0.11755678868688688,
+   "t": -5.337747809740791,
+   "reussite": 20.869565217391305,
+   "r_total": -72.16117650336301,
+   "trades_par_jour": 0.3758169934640523
+  },
+  "Cassure Donchian 40 M15 en expansion de volatilite|achat": {
+   "n": 157,
+   "r_moyen": 0.08195561508461059,
+   "ecart_type": 1.399761212962325,
+   "err_type": 0.11171310654517216,
+   "t": 0.7336257814249497,
+   "reussite": 39.49044585987261,
+   "r_total": 12.867031568283863,
+   "trades_par_jour": 0.5130718954248366
+  },
+  "Rejet du bord de Keltner M15 en regime sans tendance|achat": {
+   "n": 268,
+   "r_moyen": 0.0024666059443845868,
+   "ecart_type": 1.3424787930978972,
+   "err_type": 0.08200494410644667,
+   "t": 0.030078746729987456,
+   "reussite": 38.43283582089552,
+   "r_total": 0.6610503930950693,
+   "trades_par_jour": 0.8758169934640523,
+   "z_temoin": 0.671556323227689
+  },
+  "Faux depassement Donchian 30 M15 (retour dans le canal)|achat": {
+   "n": 431,
+   "r_moyen": -0.40078149446048383,
+   "ecart_type": 1.4158901175895315,
+   "err_type": 0.06820102715217585,
+   "t": -5.876472997484723,
+   "reussite": 28.77030162412993,
+   "r_total": -172.73682411246853,
+   "trades_par_jour": 1.408496732026144,
+   "z_temoin": -2.995365172646675
+  },
+  "Cassure d extreme de 2 jours (Donchian 12 H4)|achat": {
+   "n": 119,
+   "r_moyen": 0.18599830907085463,
+   "ecart_type": 1.3555308229391907,
+   "err_type": 0.12426130680637706,
+   "t": 1.496832069862871,
+   "reussite": 44.53781512605042,
+   "r_total": 22.1337987794317,
+   "trades_par_jour": 0.3888888888888889
+  },
+  "Compression puis cassure du canal Donchian 20 M15|achat": {
+   "n": 286,
+   "r_moyen": -0.15398960142518814,
+   "ecart_type": 1.395936685042408,
+   "err_type": 0.08254346658814836,
+   "t": -1.8655577211643066,
+   "reussite": 31.46853146853147,
+   "r_total": -44.04102600760381,
+   "trades_par_jour": 0.934640522875817,
+   "z_temoin": -0.7511723378384024
+  },
+  "Rejet du bord oppose du canal Donchian 40 en range|achat": {
+   "n": 232,
+   "r_moyen": -0.7570281722350005,
+   "ecart_type": 1.2689586131012756,
+   "err_type": 0.08331121446647465,
+   "t": -9.086749930162608,
+   "reussite": 20.689655172413794,
+   "r_total": -175.6305359585201,
+   "trades_par_jour": 0.7581699346405228,
+   "z_temoin": -6.234880992445021
+  },
+  "OSC-1 Repli stochastique aligne (achat)|achat": {
+   "n": 323,
+   "r_moyen": -0.2132472367694517,
+   "ecart_type": 1.3298157488340907,
+   "err_type": 0.0739929275728174,
+   "t": -2.8819948576786927,
+   "reussite": 30.340557275541794,
+   "r_total": -68.8788574765329,
+   "trades_par_jour": 1.0555555555555556,
+   "z_temoin": -1.2900294251263482
+  },
+  "OSC-2 Rebond stochastique aligne (vente)|vente": {
+   "n": 229,
+   "r_moyen": -0.1823292058194489,
+   "ecart_type": 1.3271852650053741,
+   "err_type": 0.08770287093654687,
+   "t": -2.07894227261231,
+   "reussite": 31.004366812227076,
+   "r_total": -41.7533881326538,
+   "trades_par_jour": 0.7483660130718954,
+   "z_temoin": -0.06974098799342501
+  },
+  "OSC-3 Sortie de neutralite H4 (les deux sens)|achat": {
+   "n": 97,
+   "r_moyen": 0.07254263433549493,
+   "ecart_type": 1.4605763826990754,
+   "err_type": 0.14829906290582395,
+   "t": 0.4891644823242242,
+   "reussite": 39.175257731958766,
+   "r_total": 7.036635530543009,
+   "trades_par_jour": 0.31699346405228757
+  },
+  "OSC-4 Etirement H4 rachete en M15 (achat)|achat": {
+   "n": 91,
+   "r_moyen": -0.20481165602421422,
+   "ecart_type": 1.3158560007820355,
+   "err_type": 0.13793918929293525,
+   "t": -1.4847967214687983,
+   "reussite": 30.76923076923077,
+   "r_total": -18.637860698203493,
+   "trades_par_jour": 0.2973856209150327
+  },
+  "OSC-5 MACD H4 positif, RSI rapide M15 remis a zero (achat)|achat": {
+   "n": 278,
+   "r_moyen": -0.041434523703554736,
+   "ecart_type": 1.3812045306820875,
+   "err_type": 0.08283914280828383,
+   "t": -0.5001804979977572,
+   "reussite": 37.76978417266187,
+   "r_total": -11.518797589588218,
+   "trades_par_jour": 0.9084967320261438,
+   "z_temoin": 0.27234304525423497
+  },
+  "OSC-6 Poussee CCI M15 en session active (achat)|achat": {
+   "n": 263,
+   "r_moyen": 0.004780156520476126,
+   "ecart_type": 1.4220388350548823,
+   "err_type": 0.08768667102417173,
+   "t": 0.054514060856049915,
+   "reussite": 36.50190114068441,
+   "r_total": 1.2571811648852211,
+   "trades_par_jour": 0.8594771241830066,
+   "z_temoin": 0.6925945087287364
+  },
+  "Absorption basse : cloture haute de bougie en bas de range M|achat": {
+   "n": 285,
+   "r_moyen": -0.2592729331137618,
+   "ecart_type": 1.328723693297615,
+   "err_type": 0.07870679885767586,
+   "t": -3.294161837055533,
+   "reussite": 29.12280701754386,
+   "r_total": -73.89278593742212,
+   "trades_par_jour": 0.9313725490196079,
+   "z_temoin": -1.708562370769703
+  },
+  "Faux depart : nouveau plus haut 20 rejete dans la meme bougi|vente": {
+   "n": 261,
+   "r_moyen": -0.26587004545063875,
+   "ecart_type": 1.2846367078582026,
+   "err_type": 0.07951701596679452,
+   "t": -3.3435616542962747,
+   "reussite": 29.50191570881226,
+   "r_total": -69.3920818626167,
+   "trades_par_jour": 0.8529411764705882,
+   "z_temoin": -1.5807009768849876
+  },
+  "Cloture pleine : bougie sans meche haute en haut de range|achat": {
+   "n": 211,
+   "r_moyen": 0.012653385260011083,
+   "ecart_type": 1.4084515485815075,
+   "err_type": 0.0969618033140037,
+   "t": 0.1304986585184892,
+   "reussite": 36.96682464454976,
+   "r_total": 2.6698642898623386,
+   "trades_par_jour": 0.6895424836601307,
+   "z_temoin": 0.764189419350634
+  },
+  "Distribution H4 : cloture basse de bougie en bas du range 24|vente": {
+   "n": 201,
+   "r_moyen": -0.18417308596568116,
+   "ecart_type": 1.2762219185146828,
+   "err_type": 0.09001775350869808,
+   "t": -2.045964032504824,
+   "reussite": 33.333333333333336,
+   "r_total": -37.018790279101914,
+   "trades_par_jour": 0.6568627450980392,
+   "z_temoin": -0.10309029520134924
+  },
+  "Excursion hors bande rejetee : meche au-dessus de Bollinger,|vente": {
+   "n": 422,
+   "r_moyen": -0.3155673252670766,
+   "ecart_type": 1.3022658391274573,
+   "err_type": 0.0633933091794114,
+   "t": -4.9779279446349705,
+   "reussite": 27.01421800947867,
+   "r_total": -133.16941126270632,
+   "trades_par_jour": 1.3790849673202614,
+   "z_temoin": -2.4795499912220524
+  },
+  "Milieu de range en expansion : rupture de la bougie M5|achat": {
+   "n": 273,
+   "r_moyen": -0.1405678823771217,
+   "ecart_type": 1.3423275763588314,
+   "err_type": 0.0812413607072949,
+   "t": -1.7302502217260338,
+   "reussite": 32.6007326007326,
+   "r_total": -38.375031888954226,
+   "trades_par_jour": 0.8921568627450981,
+   "z_temoin": -0.6291224384352135
+  },
+  "Repli M15 sous une D1 haussiere|achat": {
+   "n": 261,
+   "r_moyen": -0.49371459850236854,
+   "ecart_type": 1.356984051471881,
+   "err_type": 0.08399520411297898,
+   "t": -5.877890335718341,
+   "reussite": 26.436781609195403,
+   "r_total": -128.85951020911818,
+   "trades_par_jour": 0.8529411764705882,
+   "z_temoin": -3.840448873096517
+  },
+  "Nouveau plus-haut 24h non confirme par la M15|vente": {
+   "n": 123,
+   "r_moyen": -0.36713423660506445,
+   "ecart_type": 1.3653161121508204,
+   "err_type": 0.12310640800485892,
+   "t": -2.98225122928267,
+   "reussite": 30.08130081300813,
+   "r_total": -45.15751110242293,
+   "trades_par_jour": 0.4019607843137255
+  },
+  "Moyennes D1 et M15 en contradiction|achat": {
+   "n": 197,
+   "r_moyen": -0.07117874991713127,
+   "ecart_type": 1.3217747404642035,
+   "err_type": 0.0941725510066094,
+   "t": -0.755833299154609,
+   "reussite": 36.04060913705584,
+   "r_total": -14.022213733674862,
+   "trades_par_jour": 0.6437908496732027
+  },
+  "Choc de volatilite M15 dans un H4 endormi|achat": {
+   "n": 106,
+   "r_moyen": -0.4589584213321363,
+   "ecart_type": 1.4132989253325463,
+   "err_type": 0.13727172654602168,
+   "t": -3.3434300921265536,
+   "reussite": 27.358490566037737,
+   "r_total": -48.64959266120645,
+   "trades_par_jour": 0.3464052287581699
+  },
+  "Stochastique H4 lessive contre M15 tendu|vente": {
+   "n": 181,
+   "r_moyen": -0.7840095526241062,
+   "ecart_type": 1.2200267504875393,
+   "err_type": 0.09068387419023402,
+   "t": -8.645523359306788,
+   "reussite": 18.23204419889503,
+   "r_total": -141.90572902496322,
+   "trades_par_jour": 0.5915032679738562
+  },
+  "HJ-1 Journee etroite hier, cassure du haut de la veille aujo|achat": {
+   "n": 54,
+   "r_moyen": 0.16854309113156365,
+   "ecart_type": 1.4552147870412389,
+   "err_type": 0.19802964968910675,
+   "t": 0.8511002842057489,
+   "reussite": 40.74074074074074,
+   "r_total": 9.101326921104437,
+   "trades_par_jour": 0.17647058823529413
+  },
+  "HJ-2 Cloture faible de la veille, debordement du bas rejete|achat": {
+   "n": 46,
+   "r_moyen": -0.10884746878796894,
+   "ecart_type": 1.4608374235541066,
+   "err_type": 0.21538872735309747,
+   "t": -0.505353600095932,
+   "reussite": 39.130434782608695,
+   "r_total": -5.006983564246571,
+   "trades_par_jour": 0.1503267973856209
+  },
+  "HJ-3 Reprise de l ouverture du jour apres trois heures passe|achat": {
+   "n": 19,
+   "r_moyen": -0.28169833539812644,
+   "ecart_type": 1.3570801944141306,
+   "err_type": 0.3113355487227224,
+   "t": -0.9048062020344774,
+   "reussite": 26.31578947368421,
+   "r_total": -5.352268372564402,
+   "trades_par_jour": 0.06209150326797386
+  },
+  "HJ-4 Journee haussiere hier, reprise de sa cloture aujourd h|achat": {
+   "n": 89,
+   "r_moyen": -0.09643931276714421,
+   "ecart_type": 1.3263380559185083,
+   "err_type": 0.14059155274453758,
+   "t": -0.6859538207276196,
+   "reussite": 32.58426966292135,
+   "r_total": -8.583098836275834,
+   "trades_par_jour": 0.2908496732026144
+  },
+  "HJ-4 Journee haussiere hier, reprise de sa cloture aujourd h|vente": {
+   "n": 68,
+   "r_moyen": -0.4778345936803338,
+   "ecart_type": 1.06666782924728,
+   "err_type": 0.12935247433631877,
+   "t": -3.6940506637542567,
+   "reussite": 22.058823529411764,
+   "r_total": -32.4927523702627,
+   "trades_par_jour": 0.2222222222222222
+  },
+  "HJ-5 Journee entierement tenue au-dessus de la cloture de la|achat": {
+   "n": 97,
+   "r_moyen": -0.0309979166506865,
+   "ecart_type": 1.3752945953955584,
+   "err_type": 0.13964000933638726,
+   "t": -0.2219844928255035,
+   "reussite": 36.08247422680412,
+   "r_total": -3.0067979151165907,
+   "trades_par_jour": 0.31699346405228757
+  },
+  "HJ-5 Journee entierement tenue au-dessus de la cloture de la|vente": {
+   "n": 50,
+   "r_moyen": -0.08105535590156783,
+   "ecart_type": 1.4018244478931834,
+   "err_type": 0.1982479146276716,
+   "t": -0.40885855497545825,
+   "reussite": 32.0,
+   "r_total": -4.052767795078392,
+   "trades_par_jour": 0.16339869281045752
+  },
   "rsi-survente-tendance-h4|achat": {
    "n": 187,
    "r_moyen": -0.0669534359563672,
@@ -29,7 +658,7 @@
    "reussite": 32.861189801699716,
    "r_total": -39.17811296021385,
    "trades_par_jour": 1.15359477124183,
-   "z_temoin": 0.6319139784138293
+   "z_temoin": -0.3601221149418083
   },
   "bollinger-retour-bande|achat": {
    "n": 268,
@@ -40,7 +669,7 @@
    "reussite": 30.970149253731343,
    "r_total": -42.92960476407022,
    "trades_par_jour": 0.8758169934640523,
-   "z_temoin": -0.03833544813255253
+   "z_temoin": -0.8075108029722253
   },
   "compression-atr-expansion|achat": {
    "n": 363,
@@ -51,7 +680,7 @@
    "reussite": 33.333333333333336,
    "r_total": -36.41130972225652,
    "trades_par_jour": 1.1862745098039216,
-   "z_temoin": 0.777403715645708
+   "z_temoin": -0.26300832403943597
   },
   "keltner-exces|achat": {
    "n": 171,
@@ -72,7 +701,7 @@
    "reussite": 33.333333333333336,
    "r_total": -32.83073509824846,
    "trades_par_jour": 0.8137254901960784,
-   "z_temoin": 0.3476759504965637
+   "z_temoin": 0.8432441365898377
   },
   "pullback-ema-tendance|achat": {
    "n": 321,
@@ -83,7 +712,7 @@
    "reussite": 31.77570093457944,
    "r_total": -52.456480513861315,
    "trades_par_jour": 1.0490196078431373,
-   "z_temoin": -0.08234855600660447
+   "z_temoin": -0.8368893683361313
   },
   "pullback-ema-tendance|vente": {
    "n": 168,
@@ -104,7 +733,7 @@
    "reussite": 32.58426966292135,
    "r_total": -35.87234422696699,
    "trades_par_jour": 0.8725490196078431,
-   "z_temoin": 0.3135768542592671
+   "z_temoin": -0.5726108134562411
   },
   "stochastique-croisement-h4|vente": {
    "n": 369,
@@ -115,7 +744,7 @@
    "reussite": 31.978319783197833,
    "r_total": -57.90508243151891,
    "trades_par_jour": 1.2058823529411764,
-   "z_temoin": 0.006086561974492399
+   "z_temoin": 0.38974364213106183
   },
   "position-range-extreme|achat": {
    "n": 333,
@@ -126,7 +755,7 @@
    "reussite": 37.23723723723724,
    "r_total": 2.82424139840131,
    "trades_par_jour": 1.088235294117647,
-   "z_temoin": 2.259447734669328
+   "z_temoin": 0.7262498580836337
   },
   "position-range-extreme|vente": {
    "n": 386,
@@ -137,7 +766,7 @@
    "reussite": 29.015544041450777,
    "r_total": -100.45463561709317,
    "trades_par_jour": 1.261437908496732,
-   "z_temoin": -1.4014789246185588
+   "z_temoin": -1.4789667616519038
   },
   "cci-exces-filtre|achat": {
    "n": 256,
@@ -148,7 +777,7 @@
    "reussite": 33.59375,
    "r_total": -23.954307187565497,
    "trades_par_jour": 0.8366013071895425,
-   "z_temoin": 0.8691580212357168
+   "z_temoin": -0.20176270893973353
   },
   "macd-croisement-tendance|achat": {
    "n": 321,
@@ -159,7 +788,7 @@
    "reussite": 33.64485981308411,
    "r_total": -20.050678822429635,
    "trades_par_jour": 1.0490196078431373,
-   "z_temoin": 1.2929547019911918
+   "z_temoin": 0.08111980238415627
   },
   "macd-croisement-tendance|vente": {
    "n": 198,
@@ -180,7 +809,7 @@
    "reussite": 32.818532818532816,
    "r_total": -25.68592236809511,
    "trades_par_jour": 0.8464052287581699,
-   "z_temoin": 0.7928414863247488
+   "z_temoin": -0.2527036766997152
   },
   "bougie-exceptionnelle-suite|achat": {
    "n": 362,
@@ -191,7 +820,20 @@
    "reussite": 32.04419889502763,
    "r_total": -40.94925551477524,
    "trades_par_jour": 1.1830065359477124,
-   "z_temoin": 0.6028510262448431
+   "z_temoin": -0.37952151392103856
+  }
+ },
+ "validation": {
+  "Expansion apres compression de Bollinger en tendance M15|achat": {
+   "n": 254,
+   "r_moyen": -0.03215810381923543,
+   "ecart_type": 1.2941694480485995,
+   "err_type": 0.08120341330105402,
+   "t": -0.39601911436914955,
+   "reussite": 37.40157480314961,
+   "r_total": -8.168158370085798,
+   "trades_par_jour": 0.8193548387096774,
+   "z_temoin": -0.10592779883613852
   }
  }
 }

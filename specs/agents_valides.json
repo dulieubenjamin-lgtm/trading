@@ -1,0 +1,3033 @@
+[
+ {
+  "nom": "Detente ATR M15 puis impulsion M5",
+  "rationale": "Quand l ATR court passe nettement sous l ATR long, les teneurs de marche ont un inventaire equilibre et le carnet se reconstruit en petites tailles autour du prix : la liquidite au repos devient fine en profondeur meme si elle parait dense en surface. Une bougie M5 dont l amplitude vaut deux fois l ATR recent signale un flux directionnel trop gros pour ce carnet amaigri, et les couvertures forcees (stops des vendeurs de range, delta-hedging) prolongent le mouvement au lieu de l absorber.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "atr",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "ind": "atr",
+     "ut": "M15",
+     "params": [
+      100
+     ],
+     "mult": 0.9
+    }
+   },
+   {
+    "gauche": {
+     "ind": "atr",
+     "ut": "M5",
+     "params": [
+      4
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "ind": "atr",
+     "ut": "M5",
+     "params": [
+      72
+     ],
+     "mult": 2
+    }
+   }
+  ],
+  "declencheur_m5": "cloture_directionnelle",
+  "fenetre_horaire": null,
+  "stop": {
+   "type": "atr",
+   "ut": "M15",
+   "n": 14,
+   "mult": 1.2
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Le regime de compression (atr14 < 0.9 x atr100 en M15) occupe environ 35 a 45 % des bougies sur XAU comme sur BTC ; la bougie de rupture a 2x l ATR M5 apparait plusieurs fois par jour dans ce regime. En imposant un seul declenchement par plage de 4 heures on obtient environ 1 a 2 trades par jour et par instrument, soit 350 a 500 trades par an et par instrument, tres au-dessus du seuil de 200.",
+  "famille": "expansion_de_volatilite"
+ },
+ {
+  "nom": "Squeeze Bollinger dans Keltner M15 - bougie d expansion",
+  "rationale": "Bandes de Bollinger contenues dans les canaux de Keltner signifie que l ecart-type realise est tombe sous la volatilite vraie mesuree par l ATR : les vendeurs de range et les strategies de retour a la moyenne ont dimensionne leurs positions sur cette volatilite basse et concentrent leurs stops juste au-dela des extremes du range. La premiere bougie M5 significativement plus large que la normale declenche cette grappe de stops, ce qui cree un flux auto-entretenu au moment precis ou la profondeur du carnet est la plus faible.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "bb_haut",
+     "ut": "M15",
+     "params": [
+      20,
+      2
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "ind": "keltner_haut",
+     "ut": "M15",
+     "params": [
+      20,
+      1.5
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "ind": "bb_bas",
+     "ut": "M15",
+     "params": [
+      20,
+      2
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "ind": "keltner_bas",
+     "ut": "M15",
+     "params": [
+      20,
+      1.5
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "ind": "atr",
+     "ut": "M5",
+     "params": [
+      3
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "ind": "atr",
+     "ut": "M5",
+     "params": [
+      48
+     ],
+     "mult": 1.6
+    }
+   }
+  ],
+  "declencheur_m5": "cassure_bougie_precedente",
+  "fenetre_horaire": null,
+  "stop": {
+   "type": "extreme_recent",
+   "ut": "M5",
+   "n": 6
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Le squeeze Bollinger-dans-Keltner est actif sur environ 25 a 30 % des bougies M15 ; le filtre de bougie large (1.6x ATR M5) ramene a environ 1 declenchement par jour et par instrument. Cela donne de l ordre de 250 a 350 trades par an et par instrument, avec un plancher confortable au-dessus de 200 meme si le regime de volatilite change.",
+  "famille": "expansion_de_volatilite"
+ },
+ {
+  "nom": "Cassure Donchian 24 apres range resserre - achat",
+  "rationale": "Le plus haut des 24 dernieres bougies M15 (6 heures) est un niveau ou les vendeurs de range ont place leurs stops d achat et ou les suiveurs de tendance ont place leurs ordres stop d entree : les deux flux vont dans le meme sens au franchissement. Le filtre de compression garantit que ce plus haut a ete construit pendant une phase calme, donc que la reserve d ordres accumules est dense et que l auto-correlation de la volatilite laisse de la place pour parcourir 2R.",
+  "sens": "achat",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "atr",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "ind": "atr",
+     "ut": "M15",
+     "params": [
+      100
+     ],
+     "mult": 1
+    }
+   },
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M5"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "donchian_haut",
+     "ut": "M15",
+     "params": [
+      24
+     ]
+    }
+   }
+  ],
+  "declencheur_m5": "cassure_bougie_precedente",
+  "fenetre_horaire": null,
+  "stop": {
+   "type": "extreme_recent",
+   "ut": "M15",
+   "n": 4
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Un plus haut de 6 heures est franchi en moyenne 1 a 3 fois par jour sur XAU et BTC ; le filtre atr14 < atr100 laisse passer environ la moitie des cas. Avec un seul declenchement par franchissement (pas de reentree tant que le prix n est pas revenu sous le niveau) on attend 0.8 a 1.5 trade par jour, soit 250 a 400 trades par an et par instrument.",
+  "famille": "expansion_de_volatilite"
+ },
+ {
+  "nom": "Cassure Donchian 24 apres range resserre - vente",
+  "rationale": "Symetrique du precedent cote vendeur : sous le plus bas des 24 dernieres bougies M15 se trouvent les stops des acheteurs de range et les entrees stop des suiveurs de tendance, et la liquidite acheteuse est structurellement plus fine que la liquidite vendeuse apres une phase calme parce que les carnets se reconstituent lentement en dessous du marche. Sur XAU et BTC les baisses sont plus rapides que les hausses, ce qui rend la sortie basse plus impulsive et facilite l atteinte de 2R avant le stop.",
+  "sens": "vente",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "atr",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "ind": "atr",
+     "ut": "M15",
+     "params": [
+      100
+     ],
+     "mult": 1
+    }
+   },
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M5"
+    },
+    "op": "<",
+    "droite": {
+     "ind": "donchian_bas",
+     "ut": "M15",
+     "params": [
+      24
+     ]
+    }
+   }
+  ],
+  "declencheur_m5": "cassure_bougie_precedente",
+  "fenetre_horaire": null,
+  "stop": {
+   "type": "extreme_recent",
+   "ut": "M15",
+   "n": 4
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Meme mecanique de comptage que la version achat : 1 a 3 franchissements de plus bas de 6 heures par jour, filtres de moitie par la condition de compression, soit 0.8 a 1.5 trade par jour et 250 a 400 trades par an et par instrument. Les deux versions cumulees restent sous la cible de 1 a 2 trades par jour car elles ne peuvent pas etre actives simultanement.",
+  "famille": "expansion_de_volatilite"
+ },
+ {
+  "nom": "Compression H4 resolue par l expansion M15",
+  "rationale": "Une largeur de Bollinger H4 inferieure a trois ATR signifie que le positionnement des acteurs a horizon journalier est fige : les gestionnaires ont neutralise leur exposition et les teneurs de marche vendent de la volatilite, ce qui comprime mecaniquement le prix. Quand l ATR M15 remonte a 1.5 fois sa moyenne longue, c est le signe que ce desequilibre commence a se denouer par un flux reel, et le rachat de cette volatilite vendue amplifie le mouvement initial.",
+  "sens": "les_deux",
+  "unite_signal": "H4",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "bb_largeur",
+     "ut": "H4",
+     "params": [
+      20,
+      2
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "ind": "atr",
+     "ut": "H4",
+     "params": [
+      14
+     ],
+     "mult": 3
+    }
+   },
+   {
+    "gauche": {
+     "ind": "atr",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "ind": "atr",
+     "ut": "M15",
+     "params": [
+      96
+     ],
+     "mult": 1.5
+    }
+   }
+  ],
+  "declencheur_m5": "cassure_bougie_precedente",
+  "fenetre_horaire": null,
+  "stop": {
+   "type": "atr",
+   "ut": "M15",
+   "n": 14,
+   "mult": 1.5
+  },
+  "tp_r": 2,
+  "frequence_estimee": "La compression H4 (largeur Bollinger < 3 ATR) est presente environ 40 % du temps et dure plusieurs jours d affilee ; la poussee d ATR M15 a 1.5x survient 2 a 4 fois par jour. Avec un declenchement unique par episode d expansion, on obtient environ 1 trade par jour et par instrument, soit 250 a 320 trades par an et par instrument.",
+  "famille": "expansion_de_volatilite"
+ },
+ {
+  "nom": "Expansion d ouverture de Londres apres nuit calme",
+  "rationale": "La session asiatique laisse un carnet construit pour une volatilite faible, avec des ordres limites empiles dans une fourchette etroite ; a l ouverture europeenne arrivent des flux de couverture reels (desks or physique et bureaux crypto europeens) dont la taille n a aucun rapport avec la liquidite en place. Le desequilibre est donc temporel et structurel, pas informationnel : ce sont toujours les memes participants qui arrivent a la meme heure sur un carnet trop mince pour eux.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "atr",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "ind": "atr",
+     "ut": "M15",
+     "params": [
+      192
+     ],
+     "mult": 0.9
+    }
+   },
+   {
+    "gauche": {
+     "ind": "atr",
+     "ut": "M5",
+     "params": [
+      3
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "ind": "atr",
+     "ut": "M5",
+     "params": [
+      36
+     ],
+     "mult": 1.8
+    }
+   }
+  ],
+  "declencheur_m5": "cloture_directionnelle",
+  "fenetre_horaire": [
+   "06.50",
+   "11.00"
+  ],
+  "stop": {
+   "type": "atr",
+   "ut": "M15",
+   "n": 14,
+   "mult": 1.3
+  },
+  "tp_r": 2,
+  "frequence_estimee": "La fenetre de 4h30 contient 54 bougies M5 ; la condition de nuit calme est remplie environ 55 % des jours et la poussee de volatilite a 1.8x arrive presque systematiquement dans la fenetre quand elle l est. Avec un seul trade par jour et par instrument on attend environ 0.55 trade par jour, soit 140 par an et par instrument mais 280 a 300 sur les deux instruments : c est le setup le plus rare de la famille, a valider en pool XAU + BTC pour depasser 200 observations.",
+  "famille": "expansion_de_volatilite"
+ },
+ {
+  "nom": "Fade bande basse M15 sans tendance",
+  "rationale": "Sous la borne basse de Bollinger, ce sont surtout des stops de protection de positions longues et des algos de suivi qui s'executent en cascade : le prix depasse alors ce que justifie le flux d'information reelle. En regime sans tendance (ADX M15 bas) aucun acheteur informe n'a besoin de ce prix, donc les contreparties qui ont absorbe ce flux de liquidation revendent leur inventaire vers la moyenne mobile pour se deboucler, ce qui ramene mecaniquement le prix vers la bande mediane.",
+  "sens": "achat",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M15"
+    },
+    "op": "<",
+    "droite": {
+     "ind": "bb_bas",
+     "ut": "M15",
+     "params": [
+      20,
+      2
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "ind": "adx",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 28
+    }
+   },
+   {
+    "gauche": {
+     "ind": "rsi",
+     "ut": "H4",
+     "params": [
+      14
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "const": 35
+    }
+   }
+  ],
+  "declencheur_m5": "cloture_directionnelle",
+  "fenetre_horaire": null,
+  "stop": {
+   "type": "extreme_recent",
+   "ut": "M5",
+   "n": 12
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Une cloture M15 sous la bande basse (20,2) touche environ 2,5 % des bougies, soit 600 (XAU, ~24 000 bougies M15/an) a 870 (BTC, ~35 000) occurrences. ADX M15 < 28 en conserve ~60 % (360-520), le filtre RSI H4 > 35 ~80 % (290-420), et le dedoublonnage des grappes (un signal max par 2 h) divise par ~1,6 : 180-260 trades/an et par instrument, soit 0,8-1,1 par jour. C'est calibre pour rester au-dessus du seuil des 200 trades sur un an de donnees.",
+  "famille": "retour_a_la_moyenne"
+ },
+ {
+  "nom": "Fade bande haute M15 sans tendance",
+  "rationale": "Le miroir haussier n'est pas symetrique en substance : XAU et BTC portent une derive haussiere structurelle, donc un debordement de la bande haute est plus souvent la premiere jambe d'une vraie tendance qu'un exces. Le filtre RSI H4 < 65 isole precisement les debordements qui ne sont PAS soutenus par une poussee de l'unite superieure, c'est-a-dire la chasse au breakout de participants a horizon court qui, faute de continuation acheteuse, doivent liquider et rendre le mouvement.",
+  "sens": "vente",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M15"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "bb_haut",
+     "ut": "M15",
+     "params": [
+      20,
+      2
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "ind": "adx",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 28
+    }
+   },
+   {
+    "gauche": {
+     "ind": "rsi",
+     "ut": "H4",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 65
+    }
+   }
+  ],
+  "declencheur_m5": "cloture_directionnelle",
+  "fenetre_horaire": null,
+  "stop": {
+   "type": "extreme_recent",
+   "ut": "M5",
+   "n": 12
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Structure de comptage identique au setup long : ~2,5 % des bougies M15 cloturent au-dessus de la bande haute (600-870/an), ADX M15 < 28 en garde ~60 %, RSI H4 < 65 ~78 %, dedoublonnage /1,6. Resultat attendu 180-250 trades/an et par instrument. La cote vente sera probablement moins bien payee que la cote achat a cause de la derive haussiere : c'est justement pourquoi elle est testee separement et non fusionnee en les_deux.",
+  "famille": "retour_a_la_moyenne"
+ },
+ {
+  "nom": "Z-score 2 sigma sans expansion de volatilite",
+  "rationale": "Le z-score sur 50 bougies mesure l'ampleur de la dislocation, et atr_relatif < 1,25 certifie qu'aucune expansion de volatilite - donc aucune information nouvelle - ne l'accompagne. Un ecart de deux ecarts-types sans repricing de la volatilite est la signature d'un desequilibre d'execution (un ordre au marche de taille absorbe par un carnet mince), et ce type d'ecart se rembourse quand l'ordre initiateur est termine, contrairement a un ecart accompagne d'une hausse d'ATR qui, lui, est un vrai changement de prix d'equilibre.",
+  "sens": "achat",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "zscore",
+     "ut": "M15",
+     "params": [
+      50
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": -1.9
+    }
+   },
+   {
+    "gauche": {
+     "ind": "atr_relatif",
+     "ut": "M15",
+     "params": [
+      14,
+      100
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 1.25
+    }
+   },
+   {
+    "gauche": {
+     "ind": "adx",
+     "ut": "H4",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 32
+    }
+   }
+  ],
+  "declencheur_m5": "cassure_bougie_precedente",
+  "fenetre_horaire": null,
+  "stop": {
+   "type": "atr",
+   "ut": "M15",
+   "n": 14,
+   "mult": 1.2
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Un z-score(50) sous -1,9 concerne ~2,6 % des bougies M15 (620-910/an selon l'instrument). atr_relatif < 1,25 en conserve ~68 % (420-620), ADX H4 < 32 ~70 % (295-435), puis dedoublonnage des grappes /1,5 : 195-290 trades/an et par instrument, soit ~1 par jour. Le stop a 1,2 ATR M15 donne un objectif 2R d'environ 2,4 ATR, ce qui correspond a la distance typique bande basse -> bande mediane, donc le TP est atteignable sans exiger un retournement complet du range.",
+  "famille": "retour_a_la_moyenne"
+ },
+ {
+  "nom": "Sur-extension Keltner haute fadee",
+  "rationale": "La bande de Keltner haute est une EMA augmentee d'un multiple d'ATR : la franchir signifie que le prix s'est ecarte de sa moyenne de plus de 2,2 fois la volatilite normale de la periode, ce qui impose aux teneurs de marche une position vendeuse d'inventaire de plus en plus couteuse a porter. Avec atr_relatif < 1,3, on sait que cette extension n'est pas alimentee par un choc de volatilite : le desequilibre vient d'un flux acheteur agressif isole, et le retour vers l'EMA est le rachat de cet inventaire par les memes contreparties une fois le flux epuise.",
+  "sens": "vente",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M15"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "keltner_haut",
+     "ut": "M15",
+     "params": [
+      20,
+      2.2
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "ind": "adx",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 28
+    }
+   },
+   {
+    "gauche": {
+     "ind": "atr_relatif",
+     "ut": "M15",
+     "params": [
+      14,
+      100
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 1.3
+    }
+   }
+  ],
+  "declencheur_m5": "rejet",
+  "fenetre_horaire": null,
+  "stop": {
+   "type": "atr",
+   "ut": "M15",
+   "n": 14,
+   "mult": 1.2
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Une cloture au-dessus de Keltner(20 ; 2,2) survient sur ~2,8 % des bougies M15 (670-980/an). ADX M15 < 28 en garde ~57 % (380-560), atr_relatif < 1,3 ~72 % (275-400), dedoublonnage /1,5 : 185-270 trades/an et par instrument. Le declencheur rejet (meche superieure sur M5) est le plus selectif des trois disponibles ; s'il fait tomber le compte sous 200, le rabattre sur cloture_directionnelle recupere environ 40 % de signaux supplementaires.",
+  "famille": "retour_a_la_moyenne"
+ },
+ {
+  "nom": "Balayage du plancher de range 24h",
+  "rationale": "Quand ADX M15 est bas, les bornes du range des dernieres 24 h concentrent des ordres limites de contrepartie ET des stops de positions prises a l'interieur du range ; le passage sous le plancher declenche ces stops et offre aux acheteurs de range un remplissage a meilleur prix que leur limite initiale. Le flux qui pousse le prix dans les 10 % bas du range est donc un flux de liquidation force et non d'accumulation informee, et il s'eteint des que la poche de stops est videe.",
+  "sens": "achat",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "position_range",
+     "ut": "M15",
+     "params": [
+      96
+     ]
+    },
+    "op": "<=",
+    "droite": {
+     "const": 10
+    }
+   },
+   {
+    "gauche": {
+     "ind": "adx",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 24
+    }
+   },
+   {
+    "gauche": {
+     "ind": "rsi",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 34
+    }
+   }
+  ],
+  "declencheur_m5": "rejet",
+  "fenetre_horaire": [
+   "00.00",
+   "21.00"
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "ut": "M5",
+   "n": 8
+  },
+  "tp_r": 2,
+  "frequence_estimee": "position_dans_range(96) <= 10 concerne ~7 % des bougies M15 mais en grappes tres serrees ; en comptant par evenement distinct (une seule entree par visite du plancher) cela donne 3 a 4 evenements par jour. ADX M15 < 24 en retient ~45 % et RSI M15 < 34 (fortement correle a la condition de range) ~40 % de plus, soit 0,7 a 1,1 evenement par jour : 240-380 trades/an et par instrument. C'est le setup le plus frequent de la famille, ce qui en fait le meilleur candidat pour valider ou invalider vite l'hypothese de retour a la moyenne. Le stop tres court (extreme des 8 bougies M5, soit 40 min) rend l'objectif 2R atteignable a mi-range plutot qu'a la borne opposee.",
+  "famille": "retour_a_la_moyenne"
+ },
+ {
+  "nom": "CCI extreme fade en regime calme H4",
+  "rationale": "Le CCI mesure l'ecart du prix a sa moyenne rapporte a sa deviation moyenne : au-dela de 150 le prix a decroche de son propre regime recent, ce qui est typiquement produit par des ordres a suivre (trailing stops de vendeurs, algos de momentum court terme) qui se declenchent les uns les autres. Avec ADX H4 < 28 et sans expansion de volatilite, cette cascade n'est adossee a aucun repositionnement de fond : les vendeurs stoppes sont sortis, il ne reste plus d'acheteurs contraints, et le prix redescend vers sa moyenne quand la cascade s'arrete.",
+  "sens": "vente",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "cci",
+     "ut": "M15",
+     "params": [
+      20
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "const": 150
+    }
+   },
+   {
+    "gauche": {
+     "ind": "adx",
+     "ut": "H4",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 28
+    }
+   },
+   {
+    "gauche": {
+     "ind": "atr_relatif",
+     "ut": "M15",
+     "params": [
+      14,
+      100
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 1.3
+    }
+   }
+  ],
+  "declencheur_m5": "cassure_bougie_precedente",
+  "fenetre_horaire": null,
+  "stop": {
+   "type": "atr",
+   "ut": "M15",
+   "n": 14,
+   "mult": 1.2
+  },
+  "tp_r": 2,
+  "frequence_estimee": "CCI(20) M15 > 150 concerne ~2,6 % des bougies (620-910/an). ADX H4 < 28 en garde ~62 % (385-565), atr_relatif < 1,3 ~72 % (275-405), dedoublonnage des grappes /1,6 : 170-255 trades/an et par instrument. Si le comptage reel passe sous 200 sur XAU (moins de bougies annuelles que BTC), abaisser le seuil CCI a 130 ajoute environ 35 % de signaux sans changer la nature du setup.",
+  "famille": "retour_a_la_moyenne"
+ },
+ {
+  "nom": "Repli sur EMA50 M15 sous alignement M15/H4",
+  "rationale": "Les participants qui portent deja la tendance (desks systematiques, suiveurs de tendance) ajoutent sur retracement vers une moyenne de reference plutot qu'en pleine extension, et l'EMA50 en M15 est l'une des references intrajournalieres les plus regardees : des ordres passifs s'y accumulent mecaniquement. Le desequilibre capture est celui des vendeurs contre-tendance de court terme qui se font absorber a la moyenne puis doivent racheter quand la tendance reprend.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M15"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "ema",
+     "ut": "H4",
+     "params": [
+      50
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "prix": "bas",
+     "ut": "M15"
+    },
+    "op": "<=",
+    "droite": {
+     "ind": "ema",
+     "ut": "M15",
+     "params": [
+      50
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "ind": "adx",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "const": 22
+    }
+   }
+  ],
+  "declencheur_m5": "rejet",
+  "fenetre_horaire": [
+   "06.00",
+   "20.00"
+  ],
+  "stop": {
+   "type": "atr",
+   "ut": "M15",
+   "n": 14,
+   "mult": 1.2
+  },
+  "tp_r": 2,
+  "frequence_estimee": "L'EMA50 M15 est touchee 4 a 8 fois par jour ; le filtre ADX(14) M15 > 22 ne retient qu'environ un tiers des barres (les phases directionnelles) et la fenetre 06:00-20:00 coupe la nuit asiatique. Estimation 1,5 a 2,5 declenchements par jour et par instrument, soit environ 400 a 600 trades par an sur XAU/USD ; sur BTC/USD la fenetre peut etre etendue a 24h, ce qui augmenterait encore le compte. Largement au-dessus du seuil de 200.",
+  "famille": "Suivi de tendance intraday (alignement d"
+ },
+ {
+  "nom": "Cassure du plus-haut 24 barres M15 en tendance H4 et volatil",
+  "rationale": "Franchir le plus haut des 6 dernieres heures declenche simultanement les stops des positions contre-tendance et les entrees des systemes de momentum, ce qui cree un flux acheteur unilateral sur quelques minutes. Le filtre de volatilite relative evite les fausses cassures de marche atone, ou aucun stop significatif n'est empile au-dessus du niveau.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M15"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "ema",
+     "ut": "H4",
+     "params": [
+      20
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M15"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "plus_haut",
+     "ut": "M15",
+     "params": [
+      24
+     ],
+     "decalage": 1
+    }
+   },
+   {
+    "gauche": {
+     "ind": "atr_relatif",
+     "ut": "M15",
+     "params": []
+    },
+    "op": ">",
+    "droite": {
+     "const": 1
+    }
+   }
+  ],
+  "declencheur_m5": "cassure_bougie_precedente",
+  "fenetre_horaire": [
+   "06.00",
+   "20.00"
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "ut": "M5",
+   "n": 12,
+   "mult": 1
+  },
+  "tp_r": 2,
+  "frequence_estimee": "plus_haut(24) avec decalage 1 = plus haut des 24 bougies M15 cloturees avant la bougie de signal, donc strictement causal. Un nouveau plus-haut de 6 heures se produit plusieurs fois par jour en phase directionnelle ; atr_relatif > 1 conserve environ 45 % des barres et le regroupement (une entree par cassure, pas de reentree position ouverte) empeche les rafales. Estimation 1 a 2 par jour et par instrument, soit 300 a 500 trades par an.",
+  "famille": "Suivi de tendance intraday (alignement d"
+ },
+ {
+  "nom": "Croisement MACD M15 dans le sens de la pente EMA50 H4",
+  "rationale": "Le croisement MACD en M15 marque le moment ou le flux de court terme se retourne dans le sens du flux dominant H4 apres une pause : ceux qui ont vendu la respiration doivent deboucler pendant que les suiveurs de tendance rechargent. Le desequilibre vient de la superposition de ces deux flux au meme instant, sur un marche ou la pente H4 indique que le stock de positions dominant est deja oriente.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "ema",
+     "ut": "H4",
+     "params": [
+      50
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "ind": "ema",
+     "ut": "H4",
+     "params": [
+      50
+     ],
+     "decalage": 3
+    }
+   },
+   {
+    "gauche": {
+     "ind": "macd",
+     "ut": "M15",
+     "params": [
+      12,
+      26,
+      9
+     ]
+    },
+    "op": "croise_haut",
+    "droite": {
+     "ind": "macd_signal",
+     "ut": "M15",
+     "params": [
+      12,
+      26,
+      9
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "ind": "rsi",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "const": 45
+    }
+   }
+  ],
+  "declencheur_m5": "cassure_bougie_precedente",
+  "fenetre_horaire": [
+   "06.00",
+   "20.00"
+  ],
+  "stop": {
+   "type": "atr",
+   "ut": "M15",
+   "n": 14,
+   "mult": 1.5
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Le MACD(12,26,9) en M15 croise 4 a 8 fois par jour toutes directions confondues ; le filtre de pente EMA50 H4 (montante sur 3 bougies H4, vraie environ la moitie du temps) en retient la moitie et RSI > 45 elimine les croisements survenus en plein repli profond. Estimation 1,5 a 2,5 par jour et par instrument, soit 400 a 600 trades par an. C'est le setup le plus prolifique de la famille, il sert de socle statistique.",
+  "famille": "Suivi de tendance intraday (alignement d"
+ },
+ {
+  "nom": "Repli H4 dans une tendance journaliere",
+  "rationale": "Les participants a horizon long (allocataires, macro, ETF sur l'or) construisent leurs positions sur plusieurs jours et achetent les retracements tant que le prix reste au-dessus de leur reference journaliere ; le RSI H4 sous 50 identifie mecaniquement ce moment de retracement. L'ADX H4 assure qu'on est dans un regime ou ces flux directionnels existent reellement, et non dans un marche en range ou le meme signal serait un simple bruit.",
+  "sens": "les_deux",
+  "unite_signal": "H4",
+  "conditions": [
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "H4"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "ema",
+     "ut": "D1",
+     "params": [
+      20
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "ind": "rsi",
+     "ut": "H4",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 50
+    }
+   },
+   {
+    "gauche": {
+     "ind": "adx",
+     "ut": "H4",
+     "params": [
+      14
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "const": 20
+    }
+   }
+  ],
+  "declencheur_m5": "cloture_directionnelle",
+  "fenetre_horaire": [
+   "04.00",
+   "20.00"
+  ],
+  "stop": {
+   "type": "atr",
+   "ut": "H4",
+   "n": 14,
+   "mult": 0.8
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Six bougies H4 par jour ; la combinaison (prix au-dessus de l'EMA20 D1, RSI H4 < 50, ADX H4 > 20) est vraie sur environ 15 a 20 % des bougies H4 toutes directions confondues, mais la regle une-entree-par-bougie et l'absence de reentree position ouverte ramenent le compte a environ 0,8 a 1,2 par jour et par instrument, soit 220 a 320 trades par an. C'est le setup le plus lent de la serie : le stop 0,8 x ATR H4 implique des trades qui durent de quelques heures a un peu plus d'une journee, a surveiller pour le respect de la cible intraday.",
+  "famille": "Suivi de tendance intraday (alignement d"
+ },
+ {
+  "nom": "Expansion apres compression de Bollinger en tendance M15",
+  "rationale": "Une compression des bandes signale un marche equilibre ou les teneurs de marche laissent des ordres des deux cotes d'une zone etroite ; quand un cote cede, leur couverture plus les stops accumules produisent une impulsion mecanique. Le filtre d'alignement des EMA fait que cette resolution se produit plus souvent dans le sens de la tendance preexistante, car les positions contre-tendance accumulees pendant la consolidation sont celles qui doivent etre liquidees.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "ema",
+     "ut": "M15",
+     "params": [
+      20
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "ind": "ema",
+     "ut": "M15",
+     "params": [
+      100
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "ind": "bb_largeur",
+     "ut": "M15",
+     "params": [
+      20,
+      2
+     ],
+     "decalage": 3
+    },
+    "op": "<",
+    "droite": {
+     "ind": "atr",
+     "ut": "M15",
+     "params": [
+      14
+     ],
+     "mult": 3,
+     "decalage": 3
+    }
+   },
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M15"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "bb_haut",
+     "ut": "M15",
+     "params": [
+      20,
+      2
+     ],
+     "decalage": 1
+    }
+   }
+  ],
+  "declencheur_m5": "cassure_bougie_precedente",
+  "fenetre_horaire": [
+   "06.00",
+   "20.00"
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "ut": "M5",
+   "n": 10,
+   "mult": 1
+  },
+  "tp_r": 2,
+  "frequence_estimee": "La mesure de compression est prise avec decalage 3 (etat des bandes 3 bougies M15 avant le signal) pour qu'elle decrive la consolidation et non la bougie de cassure elle-meme. bollinger_largeur < 3 x ATR(14) selectionne environ le tiers le plus calme des barres ; une cloture au-dessus de la bande haute de la bougie precedente concerne environ 5 a 7 % des barres. Sur 96 bougies M15 par session utile, cela donne environ 1 a 1,5 declenchement par jour et par instrument toutes directions confondues, soit 250 a 400 trades par an.",
+  "famille": "Suivi de tendance intraday (alignement d"
+ },
+ {
+  "nom": "Reprise CCI apres purge de court terme en tendance montante",
+  "rationale": "Un CCI(20) M15 sous -100 alors que l'EMA50 monte correspond a une liquidation breve de positions a levier, souvent declenchee par des stops en cascade, et non a un retournement du flux de fond. Quand le CCI repasse au-dessus de -100, le stock de vendeurs forces est epuise et les acheteurs qui attendaient un meilleur prix reprennent la main : c'est le desequilibre entre vendeurs contraints et acheteurs patients qui est capture.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "ema",
+     "ut": "M15",
+     "params": [
+      50
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "ind": "ema",
+     "ut": "M15",
+     "params": [
+      50
+     ],
+     "decalage": 8
+    }
+   },
+   {
+    "gauche": {
+     "ind": "cci",
+     "ut": "M15",
+     "params": [
+      20
+     ]
+    },
+    "op": "croise_haut",
+    "droite": {
+     "const": -100
+    }
+   },
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M15"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "ema",
+     "ut": "H4",
+     "params": [
+      50
+     ]
+    }
+   }
+  ],
+  "declencheur_m5": "cloture_directionnelle",
+  "fenetre_horaire": [
+   "06.00",
+   "20.00"
+  ],
+  "stop": {
+   "type": "atr",
+   "ut": "M15",
+   "n": 14,
+   "mult": 1.3
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Le CCI(20) M15 traverse -100 vers le haut environ 2 a 4 fois par jour ; la double condition de tendance (EMA50 M15 plus haute que 8 bougies plus tot, soit 2 heures, et prix au-dessus de l'EMA50 H4) en retient environ 40 %. Estimation 1 a 1,5 par jour et par instrument toutes directions confondues, soit 250 a 380 trades par an. Ce setup entre plus bas que le setup 1 sur le meme type de repli, ce qui donne un stop plus serre pour une meme cible 2R.",
+  "famille": "Suivi de tendance intraday (alignement d"
+ },
+ {
+  "nom": "Cassure de la fourchette asiatique a l'ouverture de Londres",
+  "rationale": "La seance asiatique (00:00-07:00 UTC) construit une fourchette etroite dont les bornes concentrent les stops des teneurs de marche asiatiques et les ordres en attente des desks europeens. A 07:00 UTC le carnet europeen prend le relais avec une taille 5 a 10 fois superieure : le franchissement d'une borne construite en liquidite faible declenche une cascade mecanique de stops absorbee par un flux directionnel frais, d'ou une extension moyenne superieure a la fourchette elle-meme.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "fenetre_horaire": [
+   "07.00",
+   "10.00"
+  ],
+  "conditions": [
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M15"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "range_horaire_haut",
+     "ut": "M5",
+     "params": [
+      0.0,
+      7.0
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "ind": "atr_relatif",
+     "ut": "M15",
+     "params": [
+      14,
+      100
+     ]
+    },
+    "op": ">=",
+    "droite": {
+     "const": 0.85
+    }
+   }
+  ],
+  "declencheur_m5": "cloture_directionnelle",
+  "stop": {
+   "type": "atr",
+   "ut": "M15",
+   "n": 14,
+   "mult": 1.3
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Cote vente, miroir exact : cloture M15 < range_horaire_bas(00:00,07:00) avec le meme filtre atr_relatif. Une des deux bornes de la fourchette asiatique est franchie dans la fenetre 07:00-10:00 sur environ 75 % des jours ouvres ; le filtre atr_relatif >= 0.85 en retire environ 20 % (jours de compression extreme post-ferie). En ne prenant que le PREMIER signal du jour : 0.6 declenchement/jour, soit 155-180 trades/an/instrument sur 260 jours, ~350 sur les deux instruments. Pour BTC qui cote 7j/7, la meme regle sur 365 jours donne 215-250 trades/an a lui seul. Si le compte annuel descend sous 200 sur XAU, abaisser le filtre a 0.75 suffit a recuperer ~25 trades. Attention DST : la borne 07:00 UTC est correcte toute l'annee (Londres ouvre a 07:00 UTC en ete, 08:00 UTC en hiver), la fenetre de 3 h couvre les deux regimes.",
+  "famille": "structure_horaire"
+ },
+ {
+  "nom": "Faux depart de Londres — retour dans la fourchette asiatique",
+  "rationale": "Un jour sur deux environ, le premier mouvement de Londres est une prise de liquidite : le prix sort de la fourchette asiatique, remplit les stops accumules, puis ne trouve aucun flux de continuation et revient a l'interieur. Ce retour signale que le cote qui a casse est piege et doit se deboucler, ce qui fournit le carburant directionnel du mouvement inverse jusqu'a la borne opposee.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "fenetre_horaire": [
+   "08.00",
+   "12.00"
+  ],
+  "conditions": [
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M15"
+    },
+    "op": "croise_bas",
+    "droite": {
+     "ind": "range_horaire_haut",
+     "ut": "M5",
+     "params": [
+      0.0,
+      7.0
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "ind": "rsi",
+     "ut": "H4",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 62
+    }
+   }
+  ],
+  "declencheur_m5": "cloture_directionnelle",
+  "stop": {
+   "type": "extreme_recent",
+   "ut": "M5",
+   "n": 12
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Cote achat, miroir exact : cloture M15 croise_haut range_horaire_bas(00:00,07:00) avec rsi(H4,14) > 38. Le croisement de retour ne peut se produire que si la borne a d'abord ete franchie (~75 % des jours) ; parmi ces jours, le prix repasse la borne dans le sens inverse avant 12:00 UTC dans ~55 % des cas, soit 0.41 evenement/jour, x2 sens mais mutuellement exclusifs sur une meme borne. Le filtre RSI H4 (large, il ne coupe que les tendances H4 saturees) retire ~12 %. Resultat : 0.36 declenchement/jour = 95 trades/an sur XAU, 130 sur BTC (365 j). C'est le setup le plus rare du lot : pour atteindre 200 il faut le compter sur les DEUX instruments (~225/an cumule) ou elargir la fenetre a 08:00-14:00, ce qui ajoute ~30 %. Le stop sur l'extreme des 12 dernieres bougies M5 (1 h) place la butee juste au-dela du pic du faux depart, ce qui donne un R serre et rend le 2R atteignable a l'interieur de la fourchette.",
+  "famille": "structure_horaire"
+ },
+ {
+  "nom": "Cassure de la fourchette pre-New York",
+  "rationale": "Entre 12:00 et 13:30 UTC le marche se met en attente des donnees americaines et de l'ouverture du pit COMEX, formant une fourchette de compression tres lisible. A 13:30 UTC l'arrivee simultanee du flux macro et des programmes d'execution americains fait passer le volume notionnel d'un facteur trois en quelques minutes : le premier niveau franchi devient le point d'ancrage de la seance et attire les suiveurs de tendance intraday.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "fenetre_horaire": [
+   "13.50",
+   "16.00"
+  ],
+  "conditions": [
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M15"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "range_horaire_haut",
+     "ut": "M5",
+     "params": [
+      12.0,
+      13.5
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "ind": "atr_relatif",
+     "ut": "M15",
+     "params": [
+      14,
+      100
+     ]
+    },
+    "op": ">=",
+    "droite": {
+     "const": 0.9
+    }
+   }
+  ],
+  "declencheur_m5": "cloture_directionnelle",
+  "stop": {
+   "type": "atr",
+   "ut": "M15",
+   "n": 14,
+   "mult": 1.2
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Cote vente, miroir exact sur range_horaire_bas(12:00,13:30). La fourchette pre-NY ne dure que 90 minutes, elle est donc etroite : une de ses deux bornes est franchie dans la fenetre 13:30-16:00 sur ~85 % des jours. Le filtre atr_relatif >= 0.9, un peu plus severe qu'au setup 1 parce que l'expansion est attendue ici, en retire ~22 %. Premier signal du jour uniquement : 0.66 declenchement/jour = 170 trades/an sur XAU et 240 sur BTC, ~410 cumule. Marge de manoeuvre : passer le filtre a 0.8 ajoute ~20 trades/an/instrument. DST : le pit COMEX et le cash US ouvrent a 13:30 UTC en ete et 14:30 UTC en hiver ; la fenetre de 2 h 30 englobe les deux, et la fourchette 12:00-13:30 reste une zone d'attente valide dans les deux regimes.",
+  "famille": "structure_horaire"
+ },
+ {
+  "nom": "Rejet d'extreme 24 h dans la fenetre du fixing de Londres",
+  "rationale": "Entre 15:00 et 17:00 UTC se concentrent le fixing PM de l'or, le fix WMR de 16:00 heure de Londres et le debouclage des positions intraday europeennes avant la fermeture du cash : des flux d'execution contraints, insensibles au prix, poussent le marche vers un extreme puis disparaissent d'un coup. Un prix loge dans les 15 % superieurs ou inferieurs de sa fourchette des 24 dernieres heures a ce moment precis est donc souvent porte par un flux qui va cesser d'exister, et la disparition de ce flux produit un retour mecanique vers le milieu de la fourchette.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "fenetre_horaire": [
+   "15.00",
+   "17.00"
+  ],
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "position_range",
+     "ut": "M5",
+     "params": [
+      288
+     ]
+    },
+    "op": ">=",
+    "droite": {
+     "const": 0.85
+    }
+   },
+   {
+    "gauche": {
+     "ind": "heure_utc",
+     "ut": "M5"
+    },
+    "op": ">=",
+    "droite": {
+     "const": 15
+    }
+   },
+   {
+    "gauche": {
+     "ind": "heure_utc",
+     "ut": "M5"
+    },
+    "op": "<=",
+    "droite": {
+     "const": 17
+    }
+   }
+  ],
+  "declencheur_m5": "rejet",
+  "stop": {
+   "type": "extreme_recent",
+   "ut": "M5",
+   "n": 12
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Cote achat, miroir exact : position_dans_range(288) <= 0.15 sur la meme fenetre horaire. La fourchette de 288 bougies M5 couvre exactement 24 h glissantes, entierement cloturees, donc causale. Etre dans le decile-et-demi haut OU bas de cette fourchette pendant une fenetre de 2 h se produit sur ~45 % des jours toutes directions confondues (l'exigence de 0.85 est volontairement lache : a 0.95 on tomberait a 20 % et le setup deviendrait intestable). Un seul declenchement par jour et par sens : 0.45/jour = 115 trades/an sur XAU, 165 sur BTC, ~280 cumule. Pour depasser 200 par instrument, ouvrir la fenetre a 14:30-17:30 (DST : le fix de 16:00 Londres tombe a 15:00 UTC en ete et 16:00 UTC en hiver) ajoute ~35 %. Le stop derriere l'extreme des 12 dernieres M5 est tres serre par construction sur un rejet, ce qui rend le 2R accessible sans exiger un vrai retournement de tendance.",
+  "famille": "structure_horaire"
+ },
+ {
+  "nom": "Premier repli apres l'impulsion de Londres",
+  "rationale": "Quand Londres a valide la cassure de la fourchette asiatique, les gerants qui n'ont pas ete servis au prix de cassure laissent des ordres a cours limite en dessous et executent leur solde sur le premier repli, generalement entre 09:00 et 12:30 UTC. Ce repli est donc soutenu par une demande residuelle connue et non par un retournement, ce qui explique que la reprise de tendance domine statistiquement sur cette plage horaire precise.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "fenetre_horaire": [
+   "09.00",
+   "12.50"
+  ],
+  "conditions": [
+   {
+    "gauche": {
+     "prix": "bas",
+     "ut": "M15"
+    },
+    "op": "<=",
+    "droite": {
+     "ind": "ema",
+     "ut": "M15",
+     "params": [
+      20
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "ind": "ema",
+     "ut": "M15",
+     "params": [
+      20
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "ind": "ema",
+     "ut": "M15",
+     "params": [
+      50
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M15"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "range_horaire_haut",
+     "ut": "M5",
+     "params": [
+      0.0,
+      7.0
+     ]
+    }
+   }
+  ],
+  "declencheur_m5": "cassure_bougie_precedente",
+  "stop": {
+   "type": "extreme_recent",
+   "ut": "M5",
+   "n": 6
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Cote vente, miroir exact : haut M15 >= ema(M15,20), ema20 < ema50, cloture M15 < range_horaire_bas(00:00,07:00). Conditions evaluees sur bougies M15 CLOTUREES uniquement, donc causales. Le contact de l'EMA20 M15 est un evenement tres frequent : sur une fenetre de 3 h 30 il survient sur ~90 % des jours ou une tendance M15 existe. Le vrai filtre est la conjonction ema20>ema50 ET prix au-dessus de la fourchette asiatique, vraie sur ~40 % des jours cote achat et ~35 % cote vente. Total ~0.75 jour sur 1, un seul declenchement par jour : 195 trades/an sur XAU et 275 sur BTC, ~470 cumule — c'est le setup le plus dense du lot. Le declencheur M5 sur cassure du haut de la bougie M5 precedente evite d'attraper un couteau qui tombe, et le stop sur l'extreme des 6 dernieres M5 (30 min) donne un R de l'ordre de 0.5 ATR M15, ce qui rend le 2R atteignable a l'interieur du prolongement de tendance sans exiger un nouvel extreme de seance majeur.",
+  "famille": "structure_horaire"
+ },
+ {
+  "nom": "Cassure Donchian 40 M15 en expansion de volatilite",
+  "rationale": "Le plus-haut des 10 dernieres heures concentre les stops des vendeurs et les ordres d entree stop des acheteurs en attente ; quand il cede, les deux flux s additionnent dans le meme sens et produisent un deplacement mecanique sans contrepartie immediate. Le filtre d expansion (atr recent > atr long) sert a ne prendre la cassure que lorsque le marche absorbe deja mal les ordres, condition sans laquelle la cassure est reabsorbee.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M5"
+    },
+    "op": "croise_haut",
+    "droite": {
+     "ind": "donchian_haut",
+     "ut": "M15",
+     "params": [
+      40
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "ind": "atr_relatif",
+     "ut": "M15",
+     "params": [
+      14,
+      100
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "const": 1
+    }
+   },
+   {
+    "gauche": {
+     "ind": "adx",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "const": 18
+    }
+   }
+  ],
+  "declencheur_m5": "cloture_directionnelle",
+  "fenetre_horaire": [
+   "06.00",
+   "20.00"
+  ],
+  "stop": {
+   "type": "atr",
+   "ut": "M15",
+   "mult": 1.5
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Un canal de 40 bougies M15 couvre 10 h : le prix inscrit un nouvel extreme de 10 h environ 2 a 3 fois par jour toutes directions confondues. Les deux filtres (atr_relatif > 1 vrai ~45 % du temps, adx > 18 vrai ~65 % du temps) en laissent passer environ la moitie, soit ~1,2 declenchement par jour et par instrument, soit 280-320 trades par an. Le cote vente est le miroir exact (cloture croise_bas donchian_bas). Sur BTC la fenetre peut etre etendue a 24 h, ce qui ajoute ~30 %.",
+  "famille": "Canaux et extremes de periode (Donchian,"
+ },
+ {
+  "nom": "Rejet du bord de Keltner M15 en regime sans tendance",
+  "rationale": "Un ecart de 2 ATR par rapport a la moyenne mobile signifie que les ordres au marche ont consomme la liquidite disponible d un cote du carnet ; en l absence de tendance directionnelle (adx faible) les teneurs de marche se repositionnent et le prix revient vers la moyenne. Le rejet en meche montre que le prix a teste le bord et n a trouve aucun suiveur au-dela.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "prix": "haut",
+     "ut": "M5"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "keltner_haut",
+     "ut": "M15",
+     "params": [
+      20,
+      2
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "ind": "rsi",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "const": 62
+    }
+   },
+   {
+    "gauche": {
+     "ind": "adx",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 25
+    }
+   }
+  ],
+  "declencheur_m5": "rejet",
+  "fenetre_horaire": null,
+  "stop": {
+   "type": "extreme_recent",
+   "ut": "M5",
+   "n": 6
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Le bord a 2 ATR d un Keltner 20 M15 est touche 3 a 6 fois par jour. Le filtre rsi > 62 supprime les touchers marginaux et adx < 25 est vrai environ 60 % du temps : il reste ~1,5 a 2 declenchements par jour et par instrument, soit 400-500 trades par an. Le stop sur l extreme des 6 dernieres bougies M5 est serre (souvent 0,4 a 0,7 ATR M15), ce qui rend le 2R atteignable dans le simple retour vers la moyenne du canal. Miroir exact pour l achat (bas M5 < keltner_bas, rsi < 38).",
+  "famille": "Canaux et extremes de periode (Donchian,"
+ },
+ {
+  "nom": "Faux depassement Donchian 30 M15 (retour dans le canal)",
+  "rationale": "Les ordres stop places juste au-dela d un extreme de periode sont declenches par la meche, puis le flux s epuise instantanement faute d acheteurs de continuation ; les participants qui ont ete executes au-dessus du canal sont immediatement en perte et deviennent des vendeurs forces. La cloture M5 de retour a l interieur du canal date precisement le moment ou l excursion a echoue, sans aucune anticipation.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "prix": "haut",
+     "ut": "M5"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "donchian_haut",
+     "ut": "M15",
+     "params": [
+      30
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M5"
+    },
+    "op": "<",
+    "droite": {
+     "ind": "donchian_haut",
+     "ut": "M15",
+     "params": [
+      30
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "ind": "atr_relatif",
+     "ut": "M15",
+     "params": [
+      14,
+      100
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 1.3
+    }
+   }
+  ],
+  "declencheur_m5": "rejet",
+  "fenetre_horaire": null,
+  "stop": {
+   "type": "extreme_recent",
+   "ut": "M5",
+   "n": 3
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Le depassement d un extreme de 7,5 h suivi d une cloture M5 de retour dans le canal est un evenement tres commun : 2 a 3 fois par jour toutes directions confondues avant filtre. Le seul filtre (atr_relatif < 1,3, vrai ~80 % du temps, il ecarte les journees d expansion violente ou la cassure est vraie) laisse ~2 declenchements par jour, soit 500+ trades par an, largement au-dessus du seuil de 200. Stop sur l extreme des 3 bougies M5 (donc juste au-dessus de la meche de depassement) : tres serre, le 2R se joue a l interieur du canal.",
+  "famille": "Canaux et extremes de periode (Donchian,"
+ },
+ {
+  "nom": "Cassure d extreme de 2 jours (Donchian 12 H4)",
+  "rationale": "Un extreme de deux jours est le niveau que la majorite des positions swing utilisent comme stop de protection et que les systemes de suivi de tendance utilisent comme entree ; sa rupture declenche simultanement des liquidations et des entrees dans le meme sens. La cassure sur unite superieure produit un desequilibre plus durable que sur M15, ce qui donne le temps au 2R de se realiser.",
+  "sens": "les_deux",
+  "unite_signal": "H4",
+  "conditions": [
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M5"
+    },
+    "op": "croise_haut",
+    "droite": {
+     "ind": "donchian_haut",
+     "ut": "H4",
+     "params": [
+      12
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "ind": "atr_relatif",
+     "ut": "M15",
+     "params": [
+      14,
+      100
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "const": 0.9
+    }
+   }
+  ],
+  "declencheur_m5": "cloture_directionnelle",
+  "fenetre_horaire": [
+   "07.00",
+   "21.00"
+  ],
+  "stop": {
+   "type": "atr",
+   "ut": "M15",
+   "mult": 2
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Le prix inscrit un nouvel extreme de 48 h environ 1 a 1,5 fois par jour toutes directions confondues (les series de nouveaux extremes en tendance sont comptees une fois par franchissement grace a croise_haut, pas a chaque bougie). Le filtre atr_relatif > 0,9 est vrai ~60 % du temps et sert seulement a exclure les cassures en marche morte. Estimation : ~0,8 declenchement par jour et par instrument, soit 200-260 trades par an sur les deux instruments cumules cote XAU, et davantage sur BTC ou la fenetre est de 24 h. C est le setup le plus proche du seuil minimal : ne pas y ajouter de troisieme filtre.",
+  "famille": "Canaux et extremes de periode (Donchian,"
+ },
+ {
+  "nom": "Compression puis cassure du canal Donchian 20 M15",
+  "rationale": "Une contraction de l ATR court par rapport a l ATR long signifie que les ordres s accumulent dans une bande de prix etroite : acheteurs et vendeurs deposent leurs stops de part et d autre d un canal reduit. La sortie de cette zone declenche une cascade de stops dans un carnet appauvri, et le mouvement resultant est mecaniquement grand par rapport au risque, ce qui est exactement la structure qu il faut pour un objectif a 2R.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "atr_relatif",
+     "ut": "M15",
+     "params": [
+      14,
+      100
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 0.85
+    }
+   },
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M5"
+    },
+    "op": "croise_haut",
+    "droite": {
+     "ind": "donchian_haut",
+     "ut": "M15",
+     "params": [
+      20
+     ]
+    }
+   }
+  ],
+  "declencheur_m5": "cloture_directionnelle",
+  "fenetre_horaire": null,
+  "stop": {
+   "type": "atr",
+   "ut": "M15",
+   "mult": 1.2
+  },
+  "tp_r": 2,
+  "frequence_estimee": "atr_relatif < 0,85 est vrai environ 30 a 35 % du temps. Pendant ces phases, la cassure d un canal de 20 bougies M15 (5 h) survient 2 a 4 fois par journee de compression, dans les deux sens. Estimation : ~0,9 a 1,2 declenchement par jour et par instrument, soit 240-300 trades par an. Le stop a 1,2 ATR M15 est mesure pendant la compression donc numeriquement petit, ce qui place le TP a 2R a une distance que la seule expansion post-compression couvre souvent.",
+  "famille": "Canaux et extremes de periode (Donchian,"
+ },
+ {
+  "nom": "Rejet du bord oppose du canal Donchian 40 en range",
+  "rationale": "Quand l adx est bas, le prix oscille entre deux extremes de periode que les participants traitent comme les bornes d une fourchette : les vendeurs qui ont vendu le haut rachetent au bas, et les ordres a cours limite s empilent la ou le prix a deja tourne. Le rejet en meche sur le bord bas date l echec de l extension sans aucune anticipation de pivot.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "prix": "bas",
+     "ut": "M5"
+    },
+    "op": "<=",
+    "droite": {
+     "ind": "donchian_bas",
+     "ut": "M15",
+     "params": [
+      40
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "ind": "adx",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 22
+    }
+   },
+   {
+    "gauche": {
+     "ind": "rsi",
+     "ut": "H4",
+     "params": [
+      14
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "const": 40
+    }
+   }
+  ],
+  "declencheur_m5": "rejet",
+  "fenetre_horaire": null,
+  "stop": {
+   "type": "extreme_recent",
+   "ut": "M5",
+   "n": 6
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Le prix touche le bord d un canal de 10 h plusieurs fois par jour ; adx < 22 est vrai ~50 % du temps et le filtre rsi H4 > 40 (miroir : rsi H4 < 60 pour la vente sur le bord haut) est vrai ~65 % du temps. Il reste ~1 declenchement par jour et par instrument, soit 250-300 trades par an. Le stop sur l extreme des 6 bougies M5 est de l ordre de 0,5 ATR M15, ce qui place le 2R bien avant le milieu du canal : le trade n a pas besoin d une traversee complete de la fourchette pour aboutir.",
+  "famille": "Canaux et extremes de periode (Donchian,"
+ },
+ {
+  "nom": "OSC-1 Repli stochastique aligne (achat)",
+  "rationale": "Quand le RSI H4 est au-dessus de 50, les acheteurs controlent le flux de fond et chaque repli intraday est un desequilibre temporaire cree par des prises de profit court terme plutot que par un changement de camp. Le passage du stochastique M15 sous 30 puis son retour au-dessus mesure precisement la fin de cette vague de prises de profit, moment ou les acheteurs de fond retrouvent le carnet sans concurrence vendeuse.",
+  "sens": "achat",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "rsi",
+     "ut": "H4",
+     "params": [
+      14
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "const": 50
+    }
+   },
+   {
+    "gauche": {
+     "ind": "stoch_k",
+     "ut": "M15",
+     "params": [
+      14,
+      3
+     ],
+     "sortie": "k"
+    },
+    "op": "croise_haut",
+    "droite": {
+     "const": 30
+    }
+   },
+   {
+    "gauche": {
+     "ind": "rsi",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "const": 35
+    }
+   }
+  ],
+  "declencheur_m5": "cloture_directionnelle",
+  "fenetre_horaire": [
+   "00.00",
+   "22.00"
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "ut": "M5",
+   "n": 12,
+   "mult": 1
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Le stochastique M15 passe environ 20-25 % du temps sous 30 et repasse au-dessus 2,5 a 4 fois par jour (92-96 bougies M15 par jour). Le filtre RSI H4 > 50 retient ~50 % de ces evenements et le garde-fou RSI M15 > 35 en elimine ~30 % de plus : environ 0,9-1,3 declenchement par jour, soit 250-400 trades par an et par instrument.",
+  "famille": "Oscillateurs en combinaison multi-unites"
+ },
+ {
+  "nom": "OSC-2 Rebond stochastique aligne (vente)",
+  "rationale": "Symetrique exact du precedent : sous RSI H4 50, le flux de fond est vendeur et les rebonds intraday proviennent de rachats de shorts court terme, pas d'un retournement. Le retour du stochastique M15 sous 70 date la fin de ce rachat et le retour des vendeurs de fond face a un carnet degarni.",
+  "sens": "vente",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "rsi",
+     "ut": "H4",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 50
+    }
+   },
+   {
+    "gauche": {
+     "ind": "stoch_k",
+     "ut": "M15",
+     "params": [
+      14,
+      3
+     ],
+     "sortie": "k"
+    },
+    "op": "croise_bas",
+    "droite": {
+     "const": 70
+    }
+   },
+   {
+    "gauche": {
+     "ind": "rsi",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 65
+    }
+   }
+  ],
+  "declencheur_m5": "cloture_directionnelle",
+  "fenetre_horaire": [
+   "00.00",
+   "22.00"
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "ut": "M5",
+   "n": 12,
+   "mult": 1
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Base de declenchement identique au setup 1 par symetrie : 2,5 a 4 sorties de zone haute par jour sur M15, ~50 % conservees par le filtre H4, ~70 % par le garde-fou M15, soit 0,9-1,3 par jour et 250-400 trades par an. Le couple OSC-1/OSC-2 couvre les deux sens sans jamais se declencher simultanement (RSI H4 est d'un cote ou de l'autre de 50).",
+  "famille": "Oscillateurs en combinaison multi-unites"
+ },
+ {
+  "nom": "OSC-3 Sortie de neutralite H4 (les deux sens)",
+  "rationale": "Un RSI H4 coince entre 45 et 55 signifie que ni acheteurs ni vendeurs n'ont pris l'avantage sur les 2-3 derniers jours : les ordres en attente s'accumulent des deux cotes d'une zone etroite. La montee de l'ADX M15 au-dessus de 20 date le moment ou l'un des deux camps commence a consommer ces ordres, et la cassure M5 designe mecaniquement le camp gagnant.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "rsi",
+     "ut": "H4",
+     "params": [
+      14
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "const": 45
+    }
+   },
+   {
+    "gauche": {
+     "ind": "rsi",
+     "ut": "H4",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 55
+    }
+   },
+   {
+    "gauche": {
+     "ind": "adx",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": "croise_haut",
+    "droite": {
+     "const": 20
+    }
+   }
+  ],
+  "declencheur_m5": "cassure_bougie_precedente",
+  "fenetre_horaire": [
+   "00.00",
+   "22.00"
+  ],
+  "stop": {
+   "type": "atr",
+   "ut": "M15",
+   "params": [
+    14
+   ],
+   "mult": 1.2
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Le RSI H4 est dans la bande 45-55 environ 35 % du temps ; l'ADX M15 franchit 20 vers le haut 2,5 a 3 fois par jour. Produit : ~0,9-1,1 declenchement par jour, soit 250-350 trades par an, repartis naturellement entre achats et ventes selon le sens de la cassure M5 (le sens n'est jamais choisi a la main : c'est la bougie M5 qui casse le haut ou le bas de la precedente).",
+  "famille": "Oscillateurs en combinaison multi-unites"
+ },
+ {
+  "nom": "OSC-4 Etirement H4 rachete en M15 (achat)",
+  "rationale": "Un CCI H4 sous -100 signale que le prix s'est eloigne de sa moyenne de plusieurs ecarts sur un horizon de plusieurs jours, situation ou les vendeurs ont deja execute l'essentiel de leur flux et ou les fournisseurs de liquidite exigent une prime pour continuer a vendre. Le retour du CCI M15 au-dessus de -100 date la premiere reprise de cette prime, et le filtre d'ATR relatif ecarte les cas ou l'etirement vient d'un choc d'information encore en cours de digestion.",
+  "sens": "achat",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "cci",
+     "ut": "H4",
+     "params": [
+      20
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": -100
+    }
+   },
+   {
+    "gauche": {
+     "ind": "cci",
+     "ut": "M15",
+     "params": [
+      20
+     ]
+    },
+    "op": "croise_haut",
+    "droite": {
+     "const": -100
+    }
+   },
+   {
+    "gauche": {
+     "ind": "atr_relatif",
+     "ut": "M15",
+     "params": [
+      14,
+      100
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 1.6
+    }
+   }
+  ],
+  "declencheur_m5": "rejet",
+  "fenetre_horaire": [
+   "00.00",
+   "22.00"
+  ],
+  "stop": {
+   "type": "atr",
+   "ut": "M15",
+   "params": [
+    14
+   ],
+   "mult": 1.5
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Le CCI H4 est sous -100 environ 8-10 % du temps, soit ~30 episodes par an de plusieurs bougies H4 chacun ; pendant un tel episode le CCI M15 repasse au-dessus de -100 environ 3 a 4 fois. Cela donne ~0,8-1,0 declenchement par jour en moyenne annualisee, ~220-300 trades par an apres le filtre d'ATR relatif qui retire ~20 % des cas. Le miroir exact (CCI H4 > +100, CCI M15 croise_bas +100) fournit le meme volume cote vente.",
+  "famille": "Oscillateurs en combinaison multi-unites"
+ },
+ {
+  "nom": "OSC-5 MACD H4 positif, RSI rapide M15 remis a zero (achat)",
+  "rationale": "Un histogramme MACD H4 positif indique que la moyenne courte reste au-dessus de la longue, c'est-a-dire que le flux acheteur de fond n'a pas encore ete absorbe ; dans ce contexte un RSI(7) M15 sous 35 ne traduit qu'une purge de positions a levier court terme. Le retour du RSI rapide au-dessus de 35 marque la fin de cette purge, avec un stop naturellement tres proche sous le plus bas de la purge, ce qui rend le 2R atteignable sur un simple retour a la moyenne.",
+  "sens": "achat",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "macd",
+     "ut": "H4",
+     "params": [
+      12,
+      26,
+      9
+     ],
+     "sortie": "histogramme"
+    },
+    "op": ">",
+    "droite": {
+     "const": 0
+    }
+   },
+   {
+    "gauche": {
+     "ind": "rsi",
+     "ut": "H4",
+     "params": [
+      14
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "const": 48
+    }
+   },
+   {
+    "gauche": {
+     "ind": "rsi",
+     "ut": "M15",
+     "params": [
+      7
+     ]
+    },
+    "op": "croise_haut",
+    "droite": {
+     "const": 35
+    }
+   }
+  ],
+  "declencheur_m5": "cloture_directionnelle",
+  "fenetre_horaire": [
+   "00.00",
+   "22.00"
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "ut": "M5",
+   "n": 18,
+   "mult": 1
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Un RSI(7) sur M15 est rapide : il franchit 35 vers le haut environ 4 a 5 fois par jour. Les deux filtres H4 (histogramme MACD > 0 et RSI H4 > 48, largement correles entre eux) conservent ~45 % du temps : environ 1,8-2,2 declenchements par jour, soit 500-700 trades par an. C'est le setup le plus fourni de la famille — si le volume gene, remonter le seuil du RSI(7) de 35 a 30 divise la frequence par environ deux tout en gardant plus de 250 trades par an.",
+  "famille": "Oscillateurs en combinaison multi-unites"
+ },
+ {
+  "nom": "OSC-6 Poussee CCI M15 en session active (achat)",
+  "rationale": "Le franchissement de +100 par le CCI M15 pendant les heures ou Londres puis New York sont ouverts correspond a l'arrivee d'un flux directionnel institutionnel qui doit s'executer dans la journee et ne peut donc pas attendre un meilleur prix. Le filtre RSI H4 > 45 evite d'acheter cette poussee quand elle intervient contre un flux de fond vendeur, cas ou elle est generalement absorbee en quelques bougies.",
+  "sens": "achat",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "cci",
+     "ut": "M15",
+     "params": [
+      20
+     ]
+    },
+    "op": "croise_haut",
+    "droite": {
+     "const": 100
+    }
+   },
+   {
+    "gauche": {
+     "ind": "rsi",
+     "ut": "H4",
+     "params": [
+      14
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "const": 45
+    }
+   }
+  ],
+  "declencheur_m5": "cassure_bougie_precedente",
+  "fenetre_horaire": [
+   "07.00",
+   "16.00"
+  ],
+  "stop": {
+   "type": "atr",
+   "ut": "M15",
+   "params": [
+    14
+   ],
+   "mult": 1.2
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Le CCI M15 franchit +100 vers le haut 2,5 a 3 fois par 24 h, dont environ la moitie dans la fenetre 07:00-16:00 UTC (9 h de forte activite) : ~1,3-1,5 par jour. Le filtre RSI H4 > 45, vrai ~60 % du temps, ramene a 0,8-0,9 par jour, soit 220-280 trades par an sur XAU/USD (250 seances) et environ 300 sur BTC/USD (365 jours). Le miroir vente (CCI M15 croise_bas -100, RSI H4 < 55) double ce volume.",
+  "famille": "Oscillateurs en combinaison multi-unites"
+ },
+ {
+  "nom": "Absorption basse : cloture haute de bougie en bas de range M",
+  "rationale": "Quand le prix est dans le tiers bas de son range de 20 bougies et qu'une M15 imprime son plus bas puis cloture dans le haut de sa propre amplitude, l'integralite de la poussee vendeuse a ete rachetee en 15 minutes : les vendeurs entres sur l'extreme sont immediatement en perte. Faute de volume, position_dans_range(1) est le proxy direct du rapport de force intra-bougie, et un rachat total est la signature mecanique d'un carnet a l'achat plus profond que le flux vendeur.",
+  "sens": "achat",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "position_range",
+     "ut": "M15",
+     "params": [
+      1
+     ]
+    },
+    "op": ">=",
+    "droite": {
+     "const": 0.65
+    }
+   },
+   {
+    "gauche": {
+     "ind": "position_range",
+     "ut": "M15",
+     "params": [
+      20
+     ]
+    },
+    "op": "<=",
+    "droite": {
+     "const": 0.3
+    }
+   },
+   {
+    "gauche": {
+     "ind": "rsi",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 45
+    }
+   }
+  ],
+  "declencheur_m5": "cloture_directionnelle",
+  "fenetre_horaire": [
+   "07.00",
+   "17.00"
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "n": 6,
+   "ut": "M5"
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Fenetre de 10h = 40 bougies M15/jour. P(position_dans_range(1)>=0.65) ~30%, P(position_dans_range(20)<=0.30) ~30%, RSI<45 conditionnel ~70% (correle a la position basse) : joint ~6%, soit ~2,5 signaux bruts/jour. Avec un cooldown d'une entree toutes les 2h : ~1,5 trade/jour et par instrument, ~380/an. Largement au-dessus du seuil de 200.",
+  "famille": "asymetrie_et_distribution"
+ },
+ {
+  "nom": "Faux depart : nouveau plus haut 20 rejete dans la meme bougi",
+  "rationale": "Franchir le plus haut des 20 dernieres M15 declenche mecaniquement des stops d'acheteurs a decouvert et des ordres de cassure ; si la meme bougie cloture dans son tiers bas, cette liquidite a ete consommee par un vendeur passif et n'a pas ete defendue. Les acheteurs remplis sur l'extreme sont tous en perte au moment ou la bougie ferme, ce qui fournit le carburant du mouvement inverse.",
+  "sens": "vente",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "prix": "haut",
+     "ut": "M15"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "plus_haut",
+     "ut": "M15",
+     "params": [
+      20
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "ind": "position_range",
+     "ut": "M15",
+     "params": [
+      1
+     ]
+    },
+    "op": "<=",
+    "droite": {
+     "const": 0.3
+    }
+   }
+  ],
+  "declencheur_m5": "cassure_bougie_precedente",
+  "fenetre_horaire": [
+   "07.00",
+   "19.00"
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "n": 6,
+   "ut": "M5"
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Un nouveau plus haut de 20 bougies M15 survient environ 8 a 12 fois par jour sur XAU comme sur BTC. La cloture dans le tiers bas conditionnelle a ce nouveau plus haut vaut ~20-25%. Resultat : ~2 signaux/jour, ~500/an. Seulement 2 conditions, volontairement : c'est le stop sur l'extreme du faux depart (souvent tres serre) qui apporte la selectivite via le ratio 2R.",
+  "famille": "asymetrie_et_distribution"
+ },
+ {
+  "nom": "Cloture pleine : bougie sans meche haute en haut de range",
+  "rationale": "Une M15 qui cloture dans les 15% hauts de sa propre amplitude ET au sommet du range de 20 bougies signifie qu'aucun vendeur n'a reussi a imprimer une meche superieure : le desequilibre acheteur a tenu du debut a la fin de la bougie. Ce type d'absence de contre-offre est persistant sur quelques bougies car les retardataires et les rachats de shorts poursuivent le prix avant qu'une offre nouvelle n'apparaisse.",
+  "sens": "achat",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "position_range",
+     "ut": "M15",
+     "params": [
+      1
+     ]
+    },
+    "op": ">=",
+    "droite": {
+     "const": 0.85
+    }
+   },
+   {
+    "gauche": {
+     "ind": "position_range",
+     "ut": "M15",
+     "params": [
+      20
+     ]
+    },
+    "op": ">=",
+    "droite": {
+     "const": 0.8
+    }
+   },
+   {
+    "gauche": {
+     "ind": "atr_relatif",
+     "ut": "M15",
+     "params": []
+    },
+    "op": ">=",
+    "droite": {
+     "const": 1
+    }
+   }
+  ],
+  "declencheur_m5": "cassure_bougie_precedente",
+  "fenetre_horaire": [
+   "07.00",
+   "17.00"
+  ],
+  "stop": {
+   "type": "atr",
+   "ut": "M15",
+   "params": [
+    14
+   ],
+   "mult": 1.2
+  },
+  "tp_r": 2,
+  "frequence_estimee": "40 bougies M15 dans la fenetre. P(position_dans_range(1)>=0.85) ~15%, P(position_dans_range(20)>=0.80 | precedent) ~35%, P(atr_relatif>=1.00) ~50% (seuil pose a la mediane exprès, pour ne pas assecher le flux). Joint ~2,6% : ~1,1 signal/jour, ~330/an.",
+  "famille": "asymetrie_et_distribution"
+ },
+ {
+  "nom": "Distribution H4 : cloture basse de bougie en bas du range 24",
+  "rationale": "Une bougie H4 qui cloture pres de son plus bas et dans le quart bas des six dernieres H4 signifie que sur quatre heures chaque rebond a ete vendu : tout participant entre a l'achat pendant cette bougie est en perte latente. Le desequilibre est plus lent mais plus persistant qu'en M15 car il implique des acteurs a horizon journalier dont les sorties s'etalent sur les heures suivantes.",
+  "sens": "vente",
+  "unite_signal": "H4",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "position_range",
+     "ut": "H4",
+     "params": [
+      1
+     ]
+    },
+    "op": "<=",
+    "droite": {
+     "const": 0.3
+    }
+   },
+   {
+    "gauche": {
+     "ind": "position_range",
+     "ut": "H4",
+     "params": [
+      6
+     ]
+    },
+    "op": "<=",
+    "droite": {
+     "const": 0.3
+    }
+   }
+  ],
+  "declencheur_m5": "cassure_bougie_precedente",
+  "fenetre_horaire": null,
+  "stop": {
+   "type": "extreme_recent",
+   "n": 24,
+   "ut": "M5"
+  },
+  "tp_r": 2,
+  "frequence_estimee": "6 bougies H4 par jour. P(position_dans_range(1)<=0.30) ~30%, P(position_dans_range(6)<=0.30 | precedent) ~55% : joint ~16,5%, soit ~1 signal/jour, ~360/an. C'est le setup le plus lent de la famille, mais il reste au-dessus des 200 trades car aucune fenetre horaire ne le filtre (BTC 24/7, XAU sur ses 23h).",
+  "famille": "asymetrie_et_distribution"
+ },
+ {
+  "nom": "Excursion hors bande rejetee : meche au-dessus de Bollinger,",
+  "rationale": "Depasser la bande de Bollinger superieure est une excursion statistiquement rare ; si la bougie revient clore a l'interieur de la bande avec sa cloture dans la moitie basse de sa propre amplitude, l'excursion a echoue dans le temps meme de la bougie. Les acheteurs remplis au-dela de la bande sont, par construction, les plus mal positionnes de la distribution et leur debouclage alimente le retour vers la moyenne.",
+  "sens": "vente",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "prix": "haut",
+     "ut": "M15"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "bb_haut",
+     "ut": "M15",
+     "params": [
+      20,
+      2
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M15"
+    },
+    "op": "<",
+    "droite": {
+     "ind": "bb_haut",
+     "ut": "M15",
+     "params": [
+      20,
+      2
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "ind": "position_range",
+     "ut": "M15",
+     "params": [
+      1
+     ]
+    },
+    "op": "<=",
+    "droite": {
+     "const": 0.5
+    }
+   }
+  ],
+  "declencheur_m5": "rejet",
+  "fenetre_horaire": [
+   "06.00",
+   "20.00"
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "n": 6,
+   "ut": "M5"
+  },
+  "tp_r": 2,
+  "frequence_estimee": "~7% des bougies M15 percent la bande a 2 ecarts-types ; ~55% d'entre elles clotured a l'interieur ; ~80% de celles-la ont deja une cloture dans la moitie basse de leur amplitude. Joint ~3% sur 56 bougies M15/jour dans la fenetre : ~1,7 signal/jour, ~450/an. Le miroir exact (bande basse, cloture >=0.50) est symetrique et testable en parallele.",
+  "famille": "asymetrie_et_distribution"
+ },
+ {
+  "nom": "Milieu de range en expansion : rupture de la bougie M5",
+  "rationale": "Un prix immobile au centre de son range de 20 bougies alors que la volatilite courte s'etend par rapport a la volatilite longue signale deux camps qui augmentent leur taille sans qu'aucun ne prenne l'avantage. La resolution est mecanique : le camp dont les stops sont les plus proches est purge en premier, d'ou une entree neutre en direction, dictee par le cote qui casse la bougie M5.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "position_range",
+     "ut": "M15",
+     "params": [
+      20
+     ]
+    },
+    "op": ">=",
+    "droite": {
+     "const": 0.4
+    }
+   },
+   {
+    "gauche": {
+     "ind": "position_range",
+     "ut": "M15",
+     "params": [
+      20
+     ]
+    },
+    "op": "<=",
+    "droite": {
+     "const": 0.6
+    }
+   },
+   {
+    "gauche": {
+     "ind": "atr_relatif",
+     "ut": "M15",
+     "params": []
+    },
+    "op": ">=",
+    "droite": {
+     "const": 1.2
+    }
+   }
+  ],
+  "declencheur_m5": "cassure_bougie_precedente",
+  "fenetre_horaire": null,
+  "stop": {
+   "type": "atr",
+   "ut": "M15",
+   "params": [
+    14
+   ],
+   "mult": 1
+  },
+  "tp_r": 2,
+  "frequence_estimee": "P(position_dans_range(20) entre 0,40 et 0,60) ~22%, P(atr_relatif>=1.20) ~25%, faiblement correles : ~5,5% sur les 36 bougies M15 des deux fenetres, soit ~2 signaux bruts/jour. Une seule entree par direction et par fenetre : ~1,4 trade/jour, ~400/an.",
+  "famille": "asymetrie_et_distribution"
+ },
+ {
+  "nom": "Repli M15 sous une D1 haussiere",
+  "rationale": "Les intervenants a horizon journalier ne revisent pas leur biais pour un repli intraday, alors que les algos de momentum M15 vendent mecaniquement la faiblesse locale : le repli est porte par un flux vendeur a duree de vie courte. Une fois ce flux epuise, la demande a horizon long reste en attente sous le marche et reprend la main.",
+  "sens": "achat",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "D1"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "ema",
+     "ut": "D1",
+     "params": [
+      50
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "ind": "rsi",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 38
+    }
+   },
+   {
+    "gauche": {
+     "ind": "adx",
+     "ut": "D1",
+     "params": [
+      14
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "const": 15
+    }
+   }
+  ],
+  "declencheur_m5": "cloture_directionnelle",
+  "fenetre_horaire": [
+   "06.00",
+   "20.00"
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "ut": "M5",
+   "n": 12,
+   "mult": 1
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Le filtre D1 (cloture de la derniere bougie journaliere close au-dessus de l EMA50, ADX>15) est vrai environ 40-45 % des jours. Dans ces journees, le RSI M15 passe sous 38 en moyenne 2 a 3 fois (compter un signal par re-entree dans la zone, avec un delai de reset de 3 bougies M15). Estimation : 1.0 a 1.3 trade/jour/instrument, soit 250-330 trades/an.",
+  "famille": "Desaccord entre unites de temps (D1/H4 c"
+ },
+ {
+  "nom": "Nouveau plus-haut 24h non confirme par la M15",
+  "rationale": "Un plus-haut de 24 heures declenche mecaniquement les stops des vendeurs et les ordres de cassure, mais si la M15 n accelere pas, l execution vient du carnet et non d un flux directionnel. Le desequilibre est purement technique : les stops consommes, il ne reste plus d acheteur marginal et le prix revient dans le range.",
+  "sens": "vente",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "prix": "haut",
+     "ut": "M5"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "plus_haut",
+     "ut": "H4",
+     "params": [
+      6
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "ind": "rsi",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 58
+    }
+   },
+   {
+    "gauche": {
+     "ind": "adx",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 28
+    }
+   }
+  ],
+  "declencheur_m5": "rejet",
+  "fenetre_horaire": [
+   "07.00",
+   "20.00"
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "ut": "M5",
+   "n": 6,
+   "mult": 1
+  },
+  "tp_r": 2,
+  "frequence_estimee": "plus_haut H4(6) = plus haut des 6 dernieres bougies H4 CLOSES (24h glissantes, causal). Ce niveau est touche un jour sur deux environ, souvent 2 fois dans la meme journee ; le double filtre M15 (RSI<58 et ADX<28) laisse passer environ la moitie des touches. Estimation : 0.7 a 1.0 trade/jour/instrument, 200-260 trades/an. Un miroir a l achat sur plus_bas H4(6) double le compte si besoin.",
+  "famille": "Desaccord entre unites de temps (D1/H4 c"
+ },
+ {
+  "nom": "Moyennes D1 et M15 en contradiction",
+  "rationale": "Le prix reste au-dessus de sa moyenne journaliere alors que la structure de moyennes M15 s est deja retournee a la baisse : les deux horizons ne peuvent pas avoir raison en meme temps. L horizon long porte des positions plus grosses et se rebalance plus lentement, donc c est statistiquement la M15 qui revient vers la D1, pas l inverse.",
+  "sens": "achat",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "D1"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "ema",
+     "ut": "D1",
+     "params": [
+      20
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "ind": "ema",
+     "ut": "M15",
+     "params": [
+      20
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "ind": "ema",
+     "ut": "M15",
+     "params": [
+      50
+     ]
+    }
+   },
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M5"
+    },
+    "op": "croise_haut",
+    "droite": {
+     "ind": "ema",
+     "ut": "M15",
+     "params": [
+      20
+     ]
+    }
+   }
+  ],
+  "declencheur_m5": "cloture_directionnelle",
+  "fenetre_horaire": [
+   "06.00",
+   "20.00"
+  ],
+  "stop": {
+   "type": "atr",
+   "ut": "M15",
+   "n": 14,
+   "mult": 1.5
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Cloture D1 au-dessus de l EMA20 : ~55 % des jours. A l interieur, la M15 est en configuration ema20<ema50 environ 40 % du temps, et le croisement M5 au-dessus de l EMA20 M15 se produit 3 a 5 fois par jour dans ces fenetres. Estimation : 1.2 a 1.6 trade/jour/instrument, 300-400 trades/an ; plafonner a 2 trades/jour si besoin.",
+  "famille": "Desaccord entre unites de temps (D1/H4 c"
+ },
+ {
+  "nom": "Choc de volatilite M15 dans un H4 endormi",
+  "rationale": "Une poussee de volatilite M15 sans reveil de la volatilite H4 signale un flux ponctuel (ordre de taille, reaction a une nouvelle mineure) absorbe sans changement de regime. Les teneurs de marche n ayant pas revise leur fourchette a l echelle H4, ils reprennent le risque a bon prix et l ecart se referme.",
+  "sens": "achat",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "atr_relatif",
+     "ut": "M15",
+     "params": []
+    },
+    "op": ">",
+    "droite": {
+     "const": 1.35
+    }
+   },
+   {
+    "gauche": {
+     "ind": "atr_relatif",
+     "ut": "H4",
+     "params": []
+    },
+    "op": "<",
+    "droite": {
+     "const": 1.1
+    }
+   },
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M5"
+    },
+    "op": "<",
+    "droite": {
+     "ind": "bb_bas",
+     "ut": "M15",
+     "params": [
+      20,
+      2
+     ]
+    }
+   }
+  ],
+  "declencheur_m5": "rejet",
+  "fenetre_horaire": [
+   "00.00",
+   "23.92"
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "ut": "M5",
+   "n": 6,
+   "mult": 1
+  },
+  "tp_r": 2,
+  "frequence_estimee": "atr_relatif M15 > 1.35 avec atr_relatif H4 < 1.10 (desaccord de regime de volatilite) est vrai environ 12-15 % des bougies M15 ; parmi elles, la cloture M5 sous la bande basse M15 se produit en grappes, comptees une fois par grappe avec reset de 4 bougies M15. Estimation : 1.0 a 1.5 trade/jour/instrument sur BTC (24h) et 0.8 a 1.1 sur XAU, soit 250-400 trades/an. Le miroir vendeur sur bollinger_haut est disponible si le compte est trop faible.",
+  "famille": "Desaccord entre unites de temps (D1/H4 c"
+ },
+ {
+  "nom": "Stochastique H4 lessive contre M15 tendu",
+  "rationale": "Un H4 deja vide vers le bas alors que la M15 est saturee vers le haut decrit un rebond technique achete par les traders courts pendant que l horizon superieur reste vendeur. Ce rebond est du rachat de shorts : un flux qui s auto-epuise et laisse le marche sans acheteur une fois termine.",
+  "sens": "vente",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "stoch_k",
+     "ut": "H4",
+     "params": [
+      14,
+      3
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 30
+    }
+   },
+   {
+    "gauche": {
+     "ind": "stoch_k",
+     "ut": "M15",
+     "params": [
+      14,
+      3
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "const": 75
+    }
+   }
+  ],
+  "declencheur_m5": "cassure_bougie_precedente",
+  "fenetre_horaire": [
+   "06.00",
+   "20.00"
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "ut": "M5",
+   "n": 8,
+   "mult": 1
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Le %K H4 est sous 30 environ 25 % du temps (soit ~90 jours/an de fenetres actives, souvent plusieurs H4 d affilee). Dans ces fenetres, le %K M15 depasse 75 en moyenne 2 a 3 fois par jour ; un signal par franchissement, reset quand le %K M15 repasse sous 50. Estimation : 0.8 a 1.1 trade/jour/instrument, 210-280 trades/an. Deux conditions seulement : c est volontaire, la selectivite vient du stop court et du 2R.",
+  "famille": "Desaccord entre unites de temps (D1/H4 c"
+ },
+ {
+  "nom": "HJ-1 Journee etroite hier, cassure du haut de la veille aujo",
+  "rationale": "Une journee dont l amplitude vraie est inferieure a son propre passe recent laisse un desequilibre non resolu : les ordres en attente s empilent juste au-dela des extremes de cette journee comprimee. Le premier franchissement du haut de la veille, s il se produit alors que la volatilite courte est au moins egale a sa base, transporte donc plus de flux que la meme cassure apres une journee deja large.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "atr",
+     "ut": "D1",
+     "params": [
+      1
+     ],
+     "decalage": 1
+    },
+    "op": "<",
+    "droite": {
+     "ind": "atr",
+     "ut": "D1",
+     "params": [
+      20
+     ],
+     "decalage": 1,
+     "mult": 0.9
+    }
+   },
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M15"
+    },
+    "op": "croise_haut",
+    "droite": {
+     "prix": "haut",
+     "ut": "D1",
+     "decalage": 1
+    }
+   },
+   {
+    "gauche": {
+     "ind": "atr_relatif",
+     "ut": "M15",
+     "params": [
+      14,
+      100
+     ]
+    },
+    "op": ">=",
+    "droite": {
+     "const": 1
+    }
+   }
+  ],
+  "declencheur_m5": "cloture_directionnelle",
+  "fenetre_horaire": [
+   "06.00",
+   "20.00"
+  ],
+  "stop": {
+   "type": "atr",
+   "ut": "M15",
+   "n": 14,
+   "mult": 1.3
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Le filtre d amplitude (ATR 1 jour < 0.9 x ATR 20 jours) retient environ 45 % des journees. Sur ces journees le haut de la veille est franchi en cloture M15 environ une fois sur deux, le bas de la veille de meme (version miroir), soit ~0.45 declenchement par jour et par instrument apres application de la regle une seule position ouverte : ~160 trades/an sur XAU (250 jours) et ~230 sur BTC (365 jours). Si le comptage tombe sous 200 sur XAU, relacher le multiplicateur de 0.9 a 1.0 (~55 % des journees retenues) suffit pour depasser le seuil.",
+  "famille": "heritage_journalier — l anatomie de la b"
+ },
+ {
+  "nom": "HJ-2 Cloture faible de la veille, debordement du bas rejete",
+  "rationale": "Une journee qui se termine dans le bas de sa propre fourchette laisse le marche penche du meme cote, et le debordement du plus-bas de cette journee est l endroit ou ce penchant est le plus dense en ordres de protection : une fois ces ordres consommes, il ne reste plus de vendeur mecanique. Le filtre ADX H4 bas garantit qu on tente ce rachat en regime sans direction de fond, ou l excursion hors bornes se resorbe au lieu de se prolonger.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "position_range",
+     "ut": "D1",
+     "params": [
+      1
+     ],
+     "decalage": 1
+    },
+    "op": "<",
+    "droite": {
+     "const": 0.3
+    }
+   },
+   {
+    "gauche": {
+     "prix": "bas",
+     "ut": "M15"
+    },
+    "op": "<",
+    "droite": {
+     "prix": "bas",
+     "ut": "D1",
+     "decalage": 1
+    }
+   },
+   {
+    "gauche": {
+     "ind": "adx",
+     "ut": "H4",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 25
+    }
+   }
+  ],
+  "declencheur_m5": "rejet",
+  "fenetre_horaire": [
+   "06.00",
+   "21.00"
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "ut": "M5",
+   "n": 6,
+   "mult": 1
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Cloture de la veille sous 0.3 de sa fourchette : ~30 % des journees ; version miroir (au-dessus de 0.7) : ~30 % de plus, soit ~60 % des journees eligibles pour un des deux sens. Sur ces journees l extreme de la veille est deborde dans ~60 % des cas, et la condition reste vraie sur plusieurs bougies M15 consecutives, donc plusieurs tentatives de rejet M5 par excursion : ~0.7 a 0.9 declenchement par jour apres la regle une position a la fois, soit 220-320 trades/an et par instrument. Le filtre ADX H4 < 25 (environ 40 % du temps) ramene cet ordre de grandeur a ~200-260.",
+  "famille": "heritage_journalier — l anatomie de la b"
+ },
+ {
+  "nom": "HJ-3 Reprise de l ouverture du jour apres trois heures passe",
+  "rationale": "L ouverture du jour est la ligne de partage des positions initiees depuis 00:00 UTC : tant que le prix reste d un seul cote, une partie du marche accumule une perte latente homogene, et son franchissement en sens inverse declenche la liquidation de ce bloc. La valeur lue est figee des le debut de la journee et n est jamais relue sur une bougie non cloturee, donc aucune information future n entre dans la condition.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "plus_haut",
+     "ut": "M15",
+     "params": [
+      12
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "prix": "ouverture",
+     "ut": "D1",
+     "decalage": 0
+    }
+   },
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M15"
+    },
+    "op": "croise_haut",
+    "droite": {
+     "prix": "ouverture",
+     "ut": "D1",
+     "decalage": 0
+    }
+   },
+   {
+    "gauche": {
+     "ind": "adx",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": ">=",
+    "droite": {
+     "const": 20
+    }
+   }
+  ],
+  "declencheur_m5": "cassure_bougie_precedente",
+  "fenetre_horaire": [
+   "05.00",
+   "21.00"
+  ],
+  "stop": {
+   "type": "atr",
+   "ut": "M15",
+   "n": 14,
+   "mult": 1.2
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Douze bougies M15 (3 h) entierement d un seul cote de l ouverture du jour : etat atteint au moins une fois sur ~65 % des journees, tous sens confondus. La bascule qui suit se produit dans ~55 % de ces cas et peut se reproduire une seconde fois dans la journee : ~0.5 a 0.7 declenchement par jour et par instrument, soit 180-250 trades/an. Le filtre ADX M15 >= 20 (vrai environ la moitie du temps) est volontairement bas pour ne pas passer sous le seuil des 200.",
+  "famille": "heritage_journalier — l anatomie de la b"
+ },
+ {
+  "nom": "HJ-4 Journee haussiere hier, reprise de sa cloture aujourd h",
+  "rationale": "La cloture de la veille est le prix de reference auquel la derniere seance s est accordee ; quand la journee precedente etait haussiere, un retour sous ce prix suivi de sa reprise signale que le repli n a pas trouve de contrepartie et que l acheteur de la veille reprend la main. Le niveau etant situe pres du centre de la distribution du jour, il est traverse souvent, ce qui donne au setup une frequence naturelle elevee.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "D1",
+     "decalage": 1
+    },
+    "op": ">",
+    "droite": {
+     "prix": "ouverture",
+     "ut": "D1",
+     "decalage": 1
+    }
+   },
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M15"
+    },
+    "op": "croise_haut",
+    "droite": {
+     "prix": "cloture",
+     "ut": "D1",
+     "decalage": 1
+    }
+   },
+   {
+    "gauche": {
+     "ind": "ema",
+     "ut": "M15",
+     "params": [
+      20
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "ind": "ema",
+     "ut": "M15",
+     "params": [
+      50
+     ]
+    }
+   }
+  ],
+  "declencheur_m5": "cloture_directionnelle",
+  "fenetre_horaire": [
+   "05.00",
+   "21.00"
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "ut": "M5",
+   "n": 12,
+   "mult": 1
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Journee precedente haussiere : ~52 % des journees (version miroir baissiere : les 48 % restants), donc le filtre de sens ne retire presque rien au comptage global. La cloture de la veille est franchie 1 a 4 fois par jour puisqu elle est proche du milieu de la fourchette du jour ; l accord des EMA M15 en retient environ 40 % : ~1.0 declenchement par jour et par instrument, soit 250-350 trades/an. C est le setup le plus dense de la famille et celui qui garantit le volume statistique.",
+  "famille": "heritage_journalier — l anatomie de la b"
+ },
+ {
+  "nom": "HJ-5 Journee entierement tenue au-dessus de la cloture de la",
+  "rationale": "Quand neuf heures s ecoulent sans que le prix revienne toucher la cloture de la veille, la reference de la seance precedente a ete abandonnee et chaque repli est achete avant meme d y revenir. Le refroidissement du RSI a l interieur de cet etat donne un point d entree au prix courant sans que la definition de tendance ne repose sur une moyenne mobile, mais sur un niveau fixe herite de la veille.",
+  "sens": "les_deux",
+  "unite_signal": "M15",
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "plus_bas",
+     "ut": "M15",
+     "params": [
+      36
+     ]
+    },
+    "op": ">",
+    "droite": {
+     "prix": "cloture",
+     "ut": "D1",
+     "decalage": 1
+    }
+   },
+   {
+    "gauche": {
+     "ind": "rsi",
+     "ut": "M15",
+     "params": [
+      14
+     ]
+    },
+    "op": "<",
+    "droite": {
+     "const": 50
+    }
+   },
+   {
+    "gauche": {
+     "prix": "cloture",
+     "ut": "M15"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "ema",
+     "ut": "M15",
+     "params": [
+      50
+     ]
+    }
+   }
+  ],
+  "declencheur_m5": "cassure_bougie_precedente",
+  "fenetre_horaire": [
+   "06.00",
+   "21.00"
+  ],
+  "stop": {
+   "type": "atr",
+   "ut": "M15",
+   "n": 14,
+   "mult": 1.2
+  },
+  "tp_r": 2,
+  "frequence_estimee": "Trente-six bougies M15 (9 h) sans retour sur la cloture de la veille : etat atteint sur ~25 % des journees par sens, ~50 % tous sens confondus. A l interieur de cet etat le RSI M15 repasse sous 50 deux a trois fois, mais la regle une position a la fois ramene cela a ~0.6 declenchement par jour et par instrument : 150-220 trades/an. Pour securiser le seuil des 200 sur XAU, ramener la fenetre de persistance de 36 a 24 bougies M15 (6 h) porte le comptage a ~0.9/jour.",
+  "famille": "heritage_journalier — l anatomie de la b"
+ }
+]

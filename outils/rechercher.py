@@ -80,6 +80,45 @@ def specs_temoin(n=60, graine=12345):
     return out
 
 
+def stats_temoin(instrument, debut, fin, n=120):
+    """Distribution du « aucun edge », SEPAREE PAR SENS.
+
+    Un temoin melangeant achats et ventes est un piege. Sur XAU l'ecart entre
+    entrees longues et courtes purement aleatoires vaut +0,107 R sur l'annee 1 et
+    +0,128 R sur l'annee 2 : c'est la derive haussiere, et elle gonfle
+    mecaniquement tout setup acheteur d'environ un ecart-type. Comparer un setup
+    long a un temoin mixte, c'est lui crediter la tendance du marche comme si
+    c'etait son edge.
+
+    Chaque candidat est donc mesure contre le hasard DE SON PROPRE SENS, sur la
+    MEME fenetre — la derive n'etant pas la meme d'une annee a l'autre.
+    """
+    base, biblio = charger(instrument, debut, fin)
+    par_sens = {"achat": [], "vente": []}
+    for spec in specs_temoin(n):
+        for sens in ("achat", "vente"):
+            s = dict(spec)
+            s["sens"] = sens
+            for nom_sens, res in recherche.executer_spec(
+                    s, base, biblio, MAX_TRADES_JOUR).items():
+                st = res.stats()
+                if st and st["n"] >= 50:
+                    par_sens[nom_sens].append(st["r_moyen"])
+    sortie = {}
+    for sens, v in par_sens.items():
+        if len(v) < 5:
+            continue
+        m = sum(v) / len(v)
+        sd = (sum((x - m) ** 2 for x in v) / (len(v) - 1)) ** 0.5
+        sortie[sens] = {"moyenne": m, "ecart_type": sd, "n": len(v),
+                        "derive": None}
+    if "achat" in sortie and "vente" in sortie:
+        ecart = sortie["achat"]["moyenne"] - sortie["vente"]["moyenne"]
+        sortie["achat"]["derive"] = ecart
+        sortie["vente"]["derive"] = -ecart
+    return sortie
+
+
 def evaluer(specs, instrument, debut, fin, etiquette):
     base, biblio = charger(instrument, debut, fin)
     print(f"   {etiquette:<11} {instrument} {debut} -> {fin}  "
@@ -107,31 +146,26 @@ def main() -> int:
     etapes = [e.strip() for e in a.etapes.split(",")]
     print(f"{len(specs)} specifications chargees depuis {a.specs}\n")
 
-    print("TEMOIN ALEATOIRE — a quoi ressemble « aucun edge » dans cette machinerie")
-    temoins = evaluer(specs_temoin(), *FENETRES["recherche"], "recherche")
-    rs = sorted(v["r_moyen"] for v in temoins.values())
-    reussites = sorted(v["reussite"] for v in temoins.values())
-    if not rs:
-        print("   aucun temoin exploitable")
-        return 1
-    moy_t = sum(rs) / len(rs)
-    sd_t = (sum((x - moy_t) ** 2 for x in rs) / (len(rs) - 1)) ** 0.5
-    print(f"   {len(rs)} temoins evalues")
-    print(f"   R moyen   : min {rs[0]:+.3f}  median {rs[len(rs)//2]:+.3f}  "
-          f"max {rs[-1]:+.3f}")
-    print(f"   moyenne {moy_t:+.3f}, ecart-type {sd_t:.3f}")
-    print(f"   reussite  : median {reussites[len(reussites)//2]:.1f} % "
-          f"(seuil theorique de rentabilite a 2R : 33,3 %)")
-    print()
-    print("   TOUS LES TEMOINS SONT NEGATIFS. Ce n'est pas du bruit autour de zero,")
-    print("   c'est le cout de la machinerie : spread preleve des deux cotes, stop")
-    print("   privilegie en cas d'ambiguite intra-bougie, sorties forcees a 12 h.")
-    print(f"   Avec un stop a 1,5 x ATR M15, l'aller-retour de spread pese ~12 %")
-    print("   du risque, soit l'essentiel de l'ecart.")
-    print()
-    print(f"   => LE POINT DE COMPARAISON N'EST PAS ZERO, C'EST {moy_t:+.3f} R.")
-    print("   Chaque candidat est donc note en ecarts-types au-dessus du temoin (z),")
-    print("   et non par rapport a zero.")
+    print("TEMOIN ALEATOIRE, SEPARE PAR SENS")
+    print("   Un temoin mixte crediterait a tout setup long la derive du marche")
+    print("   comme si c'etait son edge. Chaque candidat est mesure contre le")
+    print("   hasard DE SON PROPRE SENS, sur la MEME fenetre.\n")
+    temoins = {}
+    for etape in etapes:
+        instrument, d, f = FENETRES[etape]
+        temoins[etape] = stats_temoin(instrument, d, f)
+        t = temoins[etape]
+        b0, b1 = charger(instrument, d, f)[0][0], charger(instrument, d, f)[0][-1]
+        derive_prix = 100 * (b1.cloture / b0.cloture - 1)
+        print(f"   {etape:<11} {instrument}  prix {derive_prix:+.0f} %")
+        for sens in ("achat", "vente"):
+            if sens in t:
+                print(f"      {sens:<7} R moyen {t[sens]['moyenne']:+.3f}  "
+                      f"ecart-type {t[sens]['ecart_type']:.3f}  "
+                      f"({t[sens]['n']} temoins)")
+        if "achat" in t and "vente" in t:
+            print(f"      ecart achat-vente : {t['achat']['derive']:+.3f} R "
+                  f"<- valeur de la derive, a ne PAS crediter au setup")
     print()
 
     survivants = specs
@@ -148,8 +182,11 @@ def main() -> int:
               f"{len(assez_frequents)} atteignent le seuil de frequence "
               f"({TRADES_MINIMUM} trades)")
 
-        for v in assez_frequents.values():
-            v["z_temoin"] = (v["r_moyen"] - moy_t) / sd_t if sd_t else 0.0
+        tem = temoins.get(etape, {})
+        for (nom, sens), v in assez_frequents.items():
+            ref = tem.get(sens)
+            v["z_temoin"] = ((v["r_moyen"] - ref["moyenne"]) / ref["ecart_type"]
+                             if ref and ref["ecart_type"] else 0.0)
         positifs = {k: v for k, v in assez_frequents.items() if v["z_temoin"] > 1.0}
         print(f"   {len(positifs)} depassent le temoin d'au moins 1 ecart-type\n")
 
@@ -160,8 +197,8 @@ def main() -> int:
             break
 
     n_tests = sum(len(v) for v in resultats.values())
-    seuil = 1.96
     if n_tests:
+        seuil = 1.96
         seuil_bonf = abs(_quantile_normal(1 - 0.05 / (2 * n_tests)))
         attendu_max = math.sqrt(2 * math.log(max(n_tests, 2)))
         print(f"COMPTABILITE DES HYPOTHESES")
@@ -172,15 +209,13 @@ def main() -> int:
               f"totale d'edge)")
 
     derniere = etapes[-1] if etapes[-1] in resultats else list(resultats)[-1]
-    classement = sorted(
-        resultats[derniere].items(),
-        key=lambda kv: -(kv[1].get("z_temoin",
-                                   (kv[1]["r_moyen"] - moy_t) / sd_t if sd_t else 0.0)))[:15]
+    classement = sorted(resultats[derniere].items(),
+                        key=lambda kv: -kv[1].get("z_temoin", 0.0))[:15]
     print(f"\nMEILLEURS a l'etape « {derniere} » (attention : classement = selection)")
     print(f"   {'setup':<32}{'sens':<7}{'n':>5}{'reuss.':>8}{'R moy':>9}"
           f"{'z/temoin':>10}{'/jour':>7}")
     for (nom, sens), v in classement:
-        z = v.get("z_temoin", (v["r_moyen"] - moy_t) / sd_t if sd_t else 0.0)
+        z = v.get("z_temoin", 0.0)
         print(f"   {nom[:31]:<32}{sens:<7}{v['n']:>5}{v['reussite']:>7.1f}%"
               f"{v['r_moyen']:>+9.3f}{z:>+10.2f}{v['trades_par_jour']:>7.2f}")
 
