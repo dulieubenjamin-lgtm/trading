@@ -15,7 +15,7 @@ from statistics import median, quantiles
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from harnais import cache, contexte, nettoyage, seances
-from harnais.setups import _impulsion, _pivots
+from harnais.setups import S1_RATIO_MAX, S1_RATIO_MIN, _impulsion, _pivots
 from harnais.vue import VueMarche
 
 CACHE = "donnees/cache/XAUUSD-M15.csv"
@@ -43,12 +43,12 @@ def main() -> int:
     print(f"   {len(ratios)} jours | min {min(ratios):.2f} | mediane {median(ratios):.2f} "
           f"| max {max(ratios):.2f}")
     print(f"   centiles  5e {q[0]:.2f}   25e {q[4]:.2f}   75e {q[14]:.2f}   95e {q[18]:.2f}")
-    dans = sum(1 for r in ratios if 0.5 <= r <= 1.5)
-    print(f"   regle actuelle [0,50 ; 1,50] -> {dans}/{len(ratios)} jours "
-          f"({100 * dans / len(ratios):.0f} %)")
+    dans = sum(1 for r in ratios if S1_RATIO_MIN <= r <= S1_RATIO_MAX)
+    print(f"   bande en vigueur [{S1_RATIO_MIN:.2f} ; {S1_RATIO_MAX:.2f}] -> "
+          f"{dans}/{len(ratios)} jours ({100 * dans / len(ratios):.0f} %)")
 
     etapes2 = dict.fromkeys(
-        ["fenetre", "pente EMA H1", "prix du bon cote", "impulsion",
+        ["fenetre", "tendance H1", "impulsion achevee",
          "zone 0,618-0,705", "confluence EMA50", "bougie de rejet"], 0)
     for i, bg in enumerate(p):
         if not any(seances.dans_fenetre(bg.ts, f)
@@ -61,16 +61,13 @@ def main() -> int:
         v = VueMarche(p, i, s)
         for sens in ("achat", "vente"):
             k = sgn(sens)
-            if k * (eh - s["ema50_h1"][i - 12]) <= 0:
+            if k * (eh - s["ema50_h1"][i - 12]) <= 0 or k * (bg.cloture - eh) <= 0:
                 continue
-            etapes2["pente EMA H1"] += 1
-            if k * (bg.cloture - eh) <= 0:
-                continue
-            etapes2["prix du bon cote"] += 1
+            etapes2["tendance H1"] += 1
             imp = _impulsion(v, sens, atr)
             if imp is None:
                 continue
-            etapes2["impulsion"] += 1
+            etapes2["impulsion achevee"] += 1
             dep, arr, amp = imp
             z = sorted((arr - k * 0.618 * amp, arr - k * 0.705 * amp))
             if not (z[0] <= bg.cloture <= z[1]):
@@ -88,23 +85,22 @@ def main() -> int:
             break
 
     etapes3 = dict.fromkeys(
-        ["fenetre", "ADX H1 < 20", "touche niveau 5j", "2 pivots confirmes",
-         "ecart 5-20 bougies", "divergence MACD", "cloture confirmee"], 0)
+        ["fenetre", "ADX H1 < 20", "2 pivots confirmes", "ecart 5-20 bougies",
+         "pivot touche le niveau 5j", "divergence prix", "divergence MACD",
+         "cloture confirmee"], 0)
     for i, bg in enumerate(p):
         if not seances.dans_fenetre(bg.ts, reg["fenetre_s3"]):
             continue
         etapes3["fenetre"] += 1
-        adx, nh, nb = s["adx_h1"][i], s["plus_haut_5j"][i], s["plus_bas_5j"][i]
-        if None in (adx, nh, nb) or adx >= 20:
+        adx, atr = s["adx_h1"][i], s["atr_m15"][i]
+        nh, nb = s["plus_haut_5j"][i], s["plus_bas_5j"][i]
+        if None in (adx, atr, nh, nb) or adx >= 20:
             continue
         etapes3["ADX H1 < 20"] += 1
         v = VueMarche(p, i, s)
         for sens in ("achat", "vente"):
             k = sgn(sens)
             niv = nb if sens == "achat" else nh
-            if not (bg.bas <= niv if sens == "achat" else bg.haut >= niv):
-                continue
-            etapes3["touche niveau 5j"] += 1
             piv = _pivots(v, sens)
             if len(piv) < 2:
                 continue
@@ -113,8 +109,13 @@ def main() -> int:
             if not (5 <= abs(d1 - d2) <= 20):
                 continue
             etapes3["ecart 5-20 bougies"] += 1
+            if not ((p1 <= niv + 0.5 * atr) if sens == "achat"
+                    else (p1 >= niv - 0.5 * atr)):
+                continue
+            etapes3["pivot touche le niveau 5j"] += 1
             if k * (p1 - p2) >= 0:
                 continue
+            etapes3["divergence prix"] += 1
             h1, h2 = s["macd_hist"][i + d1], s["macd_hist"][i + d2]
             if h1 is None or h2 is None or k * (h1 - h2) <= 0:
                 continue

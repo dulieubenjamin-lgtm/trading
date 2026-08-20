@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from harnais import contexte, moteur, nettoyage
 from harnais.bougie import Bougie
-from harnais.setups import s1
+from harnais.setups import S1_RATIO_MAX, S1_RATIO_MIN, s1
 from harnais.vue import VueMarche
 
 UTC = timezone.utc
@@ -58,30 +58,43 @@ while len(bougies) < 18 * 96:
 # Juin : Paris = UTC+2. Range asiatique 02h-08h Paris = 00:00-06:00 UTC.
 # Fenetre de cassure 09h-11h30 Paris = 07:00-09:30 UTC.
 jour_test = jour if jour.weekday() < 5 else jour + timedelta(days=(7 - jour.weekday()))
-HAUT_RANGE, BAS_RANGE = 4020.0, 4000.0
+
+# L'amplitude du range est DEDUITE de la bande en vigueur, jamais ecrite en dur :
+# une premiere version fixait 20 $ pour un ATR journalier de 27 $ (ratio 0,74),
+# calibre sur l'ancienne bande [0,50 ; 1,50]. Recalibrer la bande faisait echouer
+# le test alors que le mecanisme etait intact. Le test valide le MECANISME, pas
+# un seuil.
+_chauffe = contexte.construire(nettoyage.filtrer(bougies)[0])
+_atr_d1 = next(v for v in reversed(_chauffe["atr_d1"]) if v)
+AMPLITUDE = (S1_RATIO_MIN + S1_RATIO_MAX) / 2 * _atr_d1
+BAS_RANGE = 4000.0
+HAUT_RANGE = BAS_RANGE + AMPLITUDE
+MI = BAS_RANGE + AMPLITUDE / 2
 
 test = []
 for k in range(24):                                 # 00:00 -> 06:00 UTC : le range
     ts = jour_test + timedelta(minutes=15 * k)
     monte = k % 2 == 0
-    o, c = (4005, 4015) if monte else (4015, 4005)
-    test.append(barre(ts, o, HAUT_RANGE if k == 6 else 4016,
-                      BAS_RANGE if k == 9 else 4004, c))
+    haut_k = HAUT_RANGE if k == 6 else HAUT_RANGE - 0.2 * AMPLITUDE
+    bas_k = BAS_RANGE if k == 9 else BAS_RANGE + 0.2 * AMPLITUDE
+    o, c = (bas_k, haut_k) if monte else (haut_k, bas_k)
+    test.append(barre(ts, o, haut_k, bas_k, c))
 
 for k in range(24, 28):                             # 06:00 -> 07:00 UTC : creux
     ts = jour_test + timedelta(minutes=15 * k)
-    test.append(barre(ts, 4014, 4016, 4012, 4014))
+    test.append(barre(ts, MI, MI + 1, MI - 1, MI))
 
-test.append(barre(jour_test + timedelta(minutes=15 * 28), 4014, 4018, 4013, 4017))
+H = HAUT_RANGE
+test.append(barre(jour_test + timedelta(minutes=15 * 28), MI, H - 1, MI - 1, H - 1.5))
 # 07:15 UTC (09h15 Paris) : CASSURE, cloture au-dessus du haut du range
-test.append(barre(jour_test + timedelta(minutes=15 * 29), 4017, 4026, 4016, 4025))
+test.append(barre(jour_test + timedelta(minutes=15 * 29), H - 1.5, H + 6, H - 2, H + 5))
 # 07:30 UTC : prolongation
-test.append(barre(jour_test + timedelta(minutes=15 * 30), 4025, 4027, 4023, 4024))
+test.append(barre(jour_test + timedelta(minutes=15 * 30), H + 5, H + 7, H + 3, H + 4))
 # 07:45 UTC : RETEST — la meche redescend dans la zone, cloture haussiere
-test.append(barre(jour_test + timedelta(minutes=15 * 31), 4021, 4024, 4019.5, 4023))
+test.append(barre(jour_test + timedelta(minutes=15 * 31), H + 1, H + 4, H - 0.5, H + 3))
 for k in range(32, 96):
     ts = jour_test + timedelta(minutes=15 * k)
-    test.append(barre(ts, 4023, 4025, 4021, 4023))
+    test.append(barre(ts, H + 3, H + 5, H + 1, H + 3))
 
 bougies += test
 propres, _ = nettoyage.filtrer(bougies)
@@ -92,6 +105,11 @@ i_retest = next(i for i, b in enumerate(propres)
                 if b.ts == jour_test + timedelta(minutes=15 * 31))
 verifie("haut du range vu au moment du retest", series["range_haut"][i_retest], HAUT_RANGE)
 verifie("bas du range vu au moment du retest", series["range_bas"][i_retest], BAS_RANGE)
+ratio = (HAUT_RANGE - BAS_RANGE) / series["atr_d1"][i_retest]
+verifie("ratio du scenario dans la bande en vigueur",
+        S1_RATIO_MIN <= ratio <= S1_RATIO_MAX, True)
+print(f"      ratio range/ATR journalier : {ratio:.2f} "
+      f"(bande {S1_RATIO_MIN}-{S1_RATIO_MAX})")
 print(f"      ATR M15 {series['atr_m15'][i_retest]:.2f} $ | "
       f"ATR D1 {series['atr_d1'][i_retest]:.2f} $")
 
@@ -107,7 +125,7 @@ if plan is None:
     sys.exit(1)
 ok += 1
 print(f"  ok  plan produit : {plan.setup} {plan.sens}")
-verifie("entree = cloture de la bougie de retest", plan.entree, 4023.0)
+verifie("entree = cloture de la bougie de retest", plan.entree, HAUT_RANGE + 3)
 verifie("stop sous l'entree", plan.stop < plan.entree, True)
 verifie("distance au stop >= 1,2 x ATR",
         plan.risque_unitaire >= 1.2 * series["atr_m15"][i_retest] - 1e-9, True)

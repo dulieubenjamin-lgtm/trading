@@ -41,6 +41,21 @@ DECALAGE_PIVOT = 2
 # R7 : "EMA50 H1 orientee" -> pente mesuree sur 3 heures (12 bougies M15).
 RECUL_PENTE = 12
 
+# S1 — bande d'amplitude du range asiatique, en multiples de l'ATR journalier.
+# CALIBREE sur la periode 22/01 -> 30/04/2026 UNIQUEMENT, et jamais rejouee sur
+# la periode de test. Les valeurs d'origine (0,50 - 1,50) etaient inventees :
+# mesure faite, le range asiatique vaut ~0,39 x ATR journalier en mediane, si
+# bien que la bande se situait presque entierement AU-DESSUS de la distribution
+# reelle et ne retenait que le quartile le plus large — l'inverse de l'intention,
+# qui etait d'ecarter les journees ou le mouvement a deja eu lieu.
+# Regle de choix, fixee AVANT de regarder le moindre resultat : 25e centile pour
+# ecarter les ranges degeneres, 90e pour ecarter ceux qui ont deja explose.
+# Produites par outils/calibrer.py --fin 2026-04-30 (55 jours, mediane 0,329).
+# NE JAMAIS les recalculer sur la periode de test : ce serait mesurer la qualite
+# du reglage et non celle du setup.
+S1_RATIO_MIN = 0.24
+S1_RATIO_MAX = 0.69
+
 # R8 : sous ce corps (en fraction d'ATR), le ratio meche/corps n'a pas de sens.
 CORPS_MINIMAL = 0.10
 
@@ -85,7 +100,7 @@ def s1(vue, regime="paris"):
         return None
 
     amplitude = haut_r - bas_r
-    if not (0.5 * atr_d1 <= amplitude <= 1.5 * atr_d1):
+    if not (S1_RATIO_MIN * atr_d1 <= amplitude <= S1_RATIO_MAX * atr_d1):
         return None
 
     jour = seances.date_locale(b.ts, regime)
@@ -156,49 +171,66 @@ def s1(vue, regime="paris"):
 # S2 — pullback Fibonacci sur impulsion de session
 # --------------------------------------------------------------------------
 
-def _impulsion(vue, sens: str, atr: float, maxi: int = 6):
-    """R6 : definition operationnelle d'une impulsion.
+def _impulsion(vue, sens: str, atr: float, maxi: int = 6, recul: int = 20):
+    """Cherche une impulsion ACHEVEE dans le passe recent.
 
-    Choix retenu : sur une fenetre de 2 a `maxi` bougies, l'extreme de depart
-    doit PRECEDER l'extreme d'arrivee, l'ampleur doit valoir >= 1,5 x ATR, et le
-    retracement maximal pendant la formation doit rester sous 38,2 %.
-    On garde la fenetre la plus ample. C'est UN choix, pas LE choix : une
-    definition par swing points donnerait d'autres impulsions.
+    R6 (corrige). La premiere version cherchait l'impulsion la plus ample sur une
+    fenetre incluant la bougie courante. Consequence mesuree sur 7 mois : 53
+    impulsions detectees, ZERO avec le prix dans la zone 0,618-0,705. Maximiser
+    l'ampleur sur une fenetre qui contient la bougie courante place l'extreme SUR
+    cette bougie — le retracement est alors toujours nul. La detection de
+    l'impulsion et la mesure du pullback etaient confondues.
+
+    Elles sont desormais separees :
+      - l'impulsion se termine au moins UNE bougie avant la courante
+      - son extreme ne doit pas avoir ete depasse depuis, sinon ce n'est plus
+        elle la reference
+      - on retient la plus RECENTE qui qualifie, pas la plus ample
     """
     s = _signe(sens)
-    meilleure = None
-    for longueur in range(2, maxi + 1):
-        if len(vue) < longueur:
+    for k in range(-1, -recul - 1, -1):
+        try:
+            fin = vue[k]
+        except IndexError:
             break
-        fen = vue.fenetre(longueur)
-        if sens == "achat":
-            j = min(range(len(fen)), key=lambda k: fen[k].bas)
-            if j == len(fen) - 1:
-                continue
-            k = max(range(j, len(fen)), key=lambda k: fen[k].haut)
-            depart, arrivee = fen[j].bas, fen[k].haut
-        else:
-            j = max(range(len(fen)), key=lambda k: fen[k].haut)
-            if j == len(fen) - 1:
-                continue
-            k = min(range(j, len(fen)), key=lambda k: fen[k].bas)
-            depart, arrivee = fen[j].haut, fen[k].bas
-        ampleur = s * (arrivee - depart)
-        if ampleur < 1.5 * atr:
+        arrivee = fin.haut if sens == "achat" else fin.bas
+
+        depasse = False
+        for d in range(k + 1, 1):
+            extreme_depuis = vue[d].haut if sens == "achat" else vue[d].bas
+            if s * (extreme_depuis - arrivee) > 0:
+                depasse = True
+                break
+        if depasse:
             continue
-        # Retracement maximal entre les deux extremes.
-        pire = 0.0
-        extreme_courant = depart
-        for x in fen[j:k + 1]:
-            extreme_courant = max(extreme_courant, x.haut) if sens == "achat" \
-                else min(extreme_courant, x.bas)
-            recul = s * (extreme_courant - (x.bas if sens == "achat" else x.haut))
-            pire = max(pire, recul)
-        if ampleur > 0 and pire / ampleur > 0.382:
-            continue
-        if meilleure is None or ampleur > meilleure[2]:
-            meilleure = (depart, arrivee, ampleur)
-    return meilleure
+
+        meilleure = None
+        for longueur in range(2, maxi + 1):
+            try:
+                bougies = [vue[d] for d in range(k - longueur + 1, k + 1)]
+            except IndexError:
+                break
+            depart = (min(b.bas for b in bougies) if sens == "achat"
+                      else max(b.haut for b in bougies))
+            ampleur = s * (arrivee - depart)
+            if ampleur < 1.5 * atr:
+                continue
+
+            # Retracement maximal PENDANT la formation de l'impulsion.
+            pire, extreme_courant = 0.0, depart
+            for x in bougies:
+                extreme_courant = (max(extreme_courant, x.haut) if sens == "achat"
+                                   else min(extreme_courant, x.bas))
+                contre = x.bas if sens == "achat" else x.haut
+                pire = max(pire, s * (extreme_courant - contre))
+            if pire / ampleur > 0.382:
+                continue
+
+            if meilleure is None or ampleur > meilleure[2]:
+                meilleure = (depart, arrivee, ampleur)
+        if meilleure is not None:
+            return meilleure
+    return None
 
 
 def s2(vue, regime="paris"):
@@ -326,14 +358,26 @@ def s3(vue, regime="paris"):
     for sens in ("achat", "vente"):
         s = _signe(sens)
         niveau = niveau_bas if sens == "achat" else niveau_haut
-        touche = b.bas <= niveau if sens == "achat" else b.haut >= niveau
-        if not touche:
-            continue
 
         pivots = _pivots(vue, sens)
         if len(pivots) < 2:
             continue
         (d1, p1), (d2, p2) = pivots[0], pivots[1]
+
+        # R11 (defaut corrige). La premiere version exigeait que la BOUGIE
+        # COURANTE touche le niveau, alors que la divergence se lit sur des
+        # pivots vieux d'au moins DECALAGE_PIVOT bougies. Les deux conditions
+        # voulaient decrire le MEME extreme de prix mais etaient forcees sur des
+        # bougies differentes : 46 candidats atteignaient le test d'ecart, zero
+        # passaient la divergence.
+        # C'est le pivot recent qui doit toucher le niveau ; la bougie courante
+        # ne sert qu'a confirmer le retour. Tolerance de 0,5 x ATR : "toucher"
+        # un niveau n'est pas une egalite exacte. Ce 0,5 est un choix arbitraire
+        # de plus, a tester.
+        touche = (p1 <= niveau + 0.5 * atr) if sens == "achat" \
+            else (p1 >= niveau - 0.5 * atr)
+        if not touche:
+            continue
         ecart = abs(d1 - d2)
         if not (5 <= ecart <= 20):
             continue

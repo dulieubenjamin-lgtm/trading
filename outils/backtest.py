@@ -23,12 +23,18 @@ def main() -> int:
     ap.add_argument("--cache", default="donnees/cache/XAUUSD-M15.csv")
     ap.add_argument("--regime", default="paris")
     ap.add_argument("--setups", default="S1,S2,S3")
+    ap.add_argument("--debut", default=None, help="premiere date incluse (AAAA-MM-JJ)")
+    ap.add_argument("--fin", default=None, help="derniere date incluse (AAAA-MM-JJ)")
     a = ap.parse_args()
     setups = tuple(s.strip() for s in a.setups.split(",") if s.strip())
 
     print("=" * 68)
     print("1. CHARGEMENT")
     brutes = cache.charger(a.cache)
+    if a.debut or a.fin:
+        brutes = [x for x in brutes
+                  if (a.debut is None or str(x.ts.date()) >= a.debut)
+                  and (a.fin is None or str(x.ts.date()) <= a.fin)]
     print(f"   {len(brutes)} bougies  |  {brutes[0].ts:%Y-%m-%d %H:%M} -> "
           f"{brutes[-1].ts:%Y-%m-%d %H:%M} UTC")
 

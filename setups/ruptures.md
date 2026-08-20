@@ -69,3 +69,89 @@ Ordre de traitement quand les données seront là :
    c'est que le setup n'a pas d'edge, seulement un réglage
 3. Ne chercher un calendrier économique (R2, R3) que si le bruit des jours de
    publication domine les statistiques
+
+
+---
+
+# Deuxième passe — ce que le backtest a révélé (20/08)
+
+Premier walk-forward sur 7 mois réels : **3 trades**, tous S1. S2 et S3 : zéro
+signal. L'entonnoir (`outils/entonnoir.py`) a localisé chaque blocage.
+
+## D. Défauts corrigés, avec la mesure avant/après
+
+**R6 — S2, l'impulsion était géométriquement impossible.**
+La détection cherchait l'impulsion la plus ample sur une fenêtre *incluant la
+bougie courante*. Maximiser l'ampleur place l'extrême **sur** cette bougie, donc
+un retracement toujours nul : 53 impulsions détectées, **0** avec le prix dans la
+zone 0,618–0,705. Détection et mesure du pullback sont désormais séparées —
+l'impulsion doit s'être achevée au moins une bougie avant, et son extrême ne doit
+pas avoir été dépassé depuis.
+→ **53 → 127 impulsions, zone 0 → 4.**
+
+**R11 (nouveau) — S3, deux conditions posées sur des bougies différentes.**
+Le toucher du niveau se lisait sur la bougie courante, la divergence sur des
+pivots vieux d'au moins 2 bougies (décalage anti-look-ahead). Les deux voulaient
+décrire le **même** extrême de prix. C'est le pivot qui doit toucher le niveau ;
+la bougie courante ne sert qu'à confirmer le retour.
+→ **divergences de prix 0 → 41.**
+
+**S1 — un seuil inventé, remplacé par un seuil mesuré.**
+La bande exigeait 0,50–1,50 × ATR journalier. Mesure : le range asiatique vaut
+**0,39 × ATR journalier en médiane**. La bande était posée presque entièrement
+au-dessus de la distribution réelle, rejetait 72 % des jours comme « trop
+étroits » et ne retenait que le quartile le plus large — l'inverse de l'intention.
+Recalibrée sur janvier–avril **uniquement** : **[0,24 ; 0,69]**.
+
+## E. Deux blocages restants, qui ne sont pas des bugs
+
+Ce sont des **erreurs de spécification**. Les corriger, c'est réécrire le setup.
+
+**R12 — S2 : la « confluence obligatoire » est un filtre d'impossibilité.**
+La zone 0,618–0,705 ne mesure que **0,38 × ATR** de large. Exiger que le prix
+*et* l'EMA50 M15 s'y trouvent simultanément, c'est demander à deux grandeurs
+largement indépendantes de coïncider dans une fenêtre étroite.
+→ 4 candidats atteignent la zone, **0** passent la confluence.
+
+**R13 — S3 : « divergence à un extrême 5 jours » est auto-contradictoire.**
+Un nouvel extrême sur 5 séances signifie **par construction** que le prix vient
+de balayer tout ce que la semaine contenait : le momentum y est maximal. Y
+chercher un affaiblissement du momentum, c'est chercher l'inverse de ce que
+l'extrême signifie.
+
+Vérifié plutôt qu'affirmé — en retirant la seule exigence de niveau :
+
+| | avec le niveau 5j | sans |
+|---|---|---|
+| divergences de prix | 41 | 1 013 |
+| dont divergence MACD | **0** | **236 (23 %)** |
+
+Les divergences existent, en proportion normale. Testé aussi sur la ligne MACD
+et non l'histogramme : 0/41 également. Ce n'est donc ni un bug de signe ni un
+choix d'indicateur — c'est la spécification.
+
+## F. Résultat hors échantillon
+
+Calibrage sur janvier–avril, test sur **mai–août, jamais utilisé pour régler
+quoi que ce soit**.
+
+| | trades | réussite | R total |
+|---|---|---|---|
+| Calibrage (jan–avr) | 5 | 40 % | −2,12 |
+| **Test (mai–août)** | **5** | **20 %** | **−3,65** |
+
+**Aucune conclusion n'est permise sur 5 trades.** Le seuil fixé d'avance était de
+20 trades minimum par setup (`config.yml`). On en a un quart, sur un seul setup.
+Ce chiffre ne dit pas que S1 perd : il dit qu'on n'a rien mesuré.
+
+## G. Le piège à éviter maintenant
+
+La tentation évidente est d'assouplir R12 et R13 jusqu'à ce que des trades
+apparaissent. Ce serait régler les seuils pour obtenir des signaux, puis
+constater qu'il y a des signaux. La bande de S1 a été recalibrée **d'après une
+distribution mesurée et une règle de centiles fixée à l'avance**, jamais d'après
+les résultats — c'est la seule forme de réglage admissible, et elle reste à
+valider hors échantillon sur davantage de données.
+
+Pour S2 et S3, le problème n'est pas un seuil mais l'idée du setup. Il faut le
+réécrire, pas le desserrer.
