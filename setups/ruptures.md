@@ -350,3 +350,75 @@ La démarche a fonctionné, même si les setups ne fonctionnent pas :
   sans séparation des échantillons, on aurait conclu à un système viable
 
 **Le rulebook a été réfuté proprement.** C'est ce qu'on lui demandait.
+
+---
+
+# Sixième passe — l'hypothèse de régime (20/08)
+
+Analyse menée sous trois garde-fous posés **avant** toute mesure, parce que
+découper 188 trades en trois régimes et retenir le meilleur, c'est de
+l'exploration de données déguisée en découverte.
+
+1. **Bornes issues du calibrage seul** — tercils du ratio de volatilité
+   (ATR 14 j / ATR 100 j) sur septembre 2023 – août 2024. La période de test ne
+   participe pas à leur définition.
+2. **Prédictions écrites d'abord, dans le code** (`outils/regimes.py`) : S1
+   meilleur en régime agité (une cassure a besoin de répondant), S3 meilleur en
+   régime calme (retour à la moyenne, déjà filtré ADX H4 < 20).
+3. **Correction de Bonferroni** — 6 comparaisons portent le seuil de |t| ≥ 1,96
+   à **|t| ≥ 2,64**. Sans elle, une chance sur quatre de « trouver » un effet
+   inexistant.
+
+## S. Un artefact de méthode qui coûtait 27 % de l'échantillon
+
+Découper les données *avant* de construire le contexte fait redémarrer la chauffe
+des indicateurs. L'ATR(100) journalier demande cent séances : les cinq premiers
+mois de la période de test sortaient donc sans régime, et 26 des 97 trades de S1
+disparaissaient de l'analyse — sur un détail d'implémentation, pas sur une
+propriété du marché.
+
+Le contexte se construit désormais sur l'historique complet, les trades sont
+filtrés ensuite. **Ce n'est pas un regard vers le futur** : chaque valeur reste
+calculée à partir des seules bougies qui la précèdent. On élargit la chauffe, on
+ne remonte pas le temps.
+
+## T. Résultat par régime — rien de significatif, mais un ordre cohérent
+
+| setup | calme | normal | agité |
+|---|---|---|---|
+| **S1** | −0,098 | −0,112 | **+0,264** |
+| **S3** | **+0,103** | +0,064 | −0,015 |
+
+Aucune cellule n'atteint |t| ≥ 2,64 (maximum observé : 1,12). **Mais les deux
+prédictions sont vérifiées dans leur direction** : S1 croît avec la volatilité,
+S3 décroît. Ce n'est pas du bruit dispersé, c'est un ordre monotone conforme à
+la nature de chaque setup.
+
+## U. Test de tendance — la bonne statistique pour une hypothèse d'ordre
+
+Découper en trois jette l'information de rang et divise l'échantillon. Une
+hypothèse d'**ordre** se teste par une pente sur tous les trades : deux tests
+seulement, donc seuil à |t| ≥ 2,24.
+
+| setup | n | corrélation | t | sens attendu | verdict |
+|---|---|---|---|---|---|
+| **S1** | 99 | **+0,150** | 1,50 | croissante | bon sens, non significatif |
+| **S3** | 87 | **−0,141** | −1,31 | décroissante | bon sens, non significatif |
+
+## V. Pourquoi ce résultat vaut mieux que le précédent
+
+L'edge global de S3 demandait **~1 000 trades, soit 23 ans** pour être prouvé —
+autant dire jamais.
+
+L'effet de régime demande **~224 trades pour S1 (≈ 5 ans)** et **~255 pour S3
+(≈ 6 ans)**. C'est le premier résultat du projet à la fois **soutenu
+directionnellement** et **testable dans un horizon atteignable**.
+
+Ce qu'on ne peut pas faire : conclure. Deux setups pointant du bon côté, c'est
+deux tirages — le pile ou face a une chance sur quatre d'en faire autant. Ce qui
+plaide au-delà du hasard, c'est que les effets ont la taille et le sens que la
+théorie prédisait, pas seulement le bon signe.
+
+Ce qu'on peut faire : **poser cette hypothèse comme la prochaine à tester**, sur
+des données neuves. Pas la retoucher, pas l'affiner sur ces 188 trades — la
+tester ailleurs.

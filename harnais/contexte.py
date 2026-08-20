@@ -50,9 +50,17 @@ def construire(base, regime="paris") -> Contexte:
         "ema50": indicateurs.ema([b.cloture for b in h4], 50),
         "adx": adx_h4,
     }
+    atr_d1_court = indicateurs.atr(d1, 14)
+    atr_d1_long = indicateurs.atr(d1, 100)
     series_d1 = {
-        "atr": indicateurs.atr(d1, 14),
+        "atr": atr_d1_court,
+        "atr_long": atr_d1_long,
         "ema20": indicateurs.ema([b.cloture for b in d1], 20),
+        # Regime de volatilite : ATR journalier rapporte a sa propre moyenne
+        # longue. Sans normalisation, un ATR de 30 $ ne veut pas dire la meme
+        # chose sur un or a 1900 $ et sur un or a 4500 $.
+        "ratio_vol": [None if (c is None or not l) else c / l
+                      for c, l in zip(atr_d1_court, atr_d1_long)],
     }
 
     ctx.unites = {
@@ -67,6 +75,8 @@ def construire(base, regime="paris") -> Contexte:
     ctx.series["atr_d1"] = alignement.aligner(base, d1, series_d1["atr"],
                                               timedelta(days=1))
     ctx.series["atr_base"] = indicateurs.atr(base, 14)
+    ctx.series["ratio_vol"] = alignement.aligner(
+        base, d1, series_d1["ratio_vol"], timedelta(days=1))
     ctx.series["range_haut"], ctx.series["range_bas"] = _range_asiatique(base, reg, regime)
     return ctx
 

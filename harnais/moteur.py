@@ -49,6 +49,7 @@ class Trade:
     entree_reelle: float
     stop_courant: float = 0.0
     capital_entree: float = CAPITAL_INITIAL
+    ratio_vol: float | None = None      # regime de volatilite au moment de l'entree
     sortie: float | None = None
     ts_sortie: datetime | None = None
     motif_sortie: str = ""
@@ -150,7 +151,8 @@ def executer(bougies, ctx, regime="paris", setups=("S1", "S2", "S3")) -> Resulta
             s = _signe(plan.sens)
             entree_reelle = plan.entree + s * SPREAD / 2   # CHOIX 2 : cout a l'entree
             position = Trade(plan=plan, taille=taille, entree_reelle=entree_reelle,
-                             stop_courant=plan.stop, capital_entree=res.capital)
+                             stop_courant=plan.stop, capital_entree=res.capital,
+                             ratio_vol=ctx.series.get("ratio_vol", [None])[i])
             res.trades.append(position)
             trades_du_jour += 1
             break
