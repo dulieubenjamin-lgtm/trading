@@ -52,7 +52,8 @@ def main() -> int:
     if r['seances_ecourtees']:
         print(f"   seances ecourtees detectees : " +
               ", ".join(str(d) for d in r['seances_ecourtees']))
-        print(f"   (feries US — le rulebook n'a pas de calendrier, voir setups/ruptures.md)")
+        print("   (feries US, ou couverture degradee du fournisseur — "
+              "voir setups/ruptures.md)")
 
     print("\n3. FILTRAGE DES BOUGIES SYNTHETIQUES")
     propres, rap = nettoyage.filtrer(brutes)
@@ -85,6 +86,30 @@ def main() -> int:
 
     print(f"\n   capital  10 000,00 $ -> {res.capital:>10,.2f} $  "
           f"({100 * (res.capital - 10000) / 10000:+.2f} %)")
+
+    print("\n   INCERTITUDE — une moyenne sans son intervalle ne dit rien")
+    print(f"   {'setup':<6}{'n':>5}{'R moyen':>10}{'ecart-type':>12}"
+          f"{'err. type':>11}{'t':>7}   intervalle 95 %")
+    from statistics import mean, stdev
+    for nom in sorted(stats):
+        rs = [t.r_realise for t in res.trades if t.plan.setup == nom]
+        if len(rs) < 3:
+            print(f"   {nom:<6}{len(rs):>5}   echantillon trop court")
+            continue
+        m, sd = mean(rs), stdev(rs)
+        se = sd / (len(rs) ** 0.5)
+        t_stat = m / se if se else 0.0
+        print(f"   {nom:<6}{len(rs):>5}{m:>+10.3f}{sd:>12.3f}{se:>11.3f}"
+              f"{t_stat:>7.2f}   [{m - 1.96 * se:+.3f} ; {m + 1.96 * se:+.3f}]"
+              + ("" if abs(t_stat) >= 1.96 else "  <- couvre zero"))
+
+    # Drawdown maximal sur la courbe des R cumules, dans l'ordre chronologique.
+    cumul, sommet, pire = 0.0, 0.0, 0.0
+    for t in sorted(res.trades, key=lambda x: x.plan.ts):
+        cumul += t.r_realise
+        sommet = max(sommet, cumul)
+        pire = min(pire, cumul - sommet)
+    print(f"\n   drawdown maximal : {pire:.2f} R")
 
     print("\n6. MOTIFS DE SORTIE")
     for motif, n in Counter(t.motif_sortie for t in res.trades).most_common():

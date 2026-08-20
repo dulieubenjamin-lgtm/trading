@@ -26,7 +26,7 @@ def sgn(sens): return 1 if sens == "achat" else -1
 
 def main() -> int:
     p, _ = nettoyage.filtrer(cache.charger(CACHE))
-    s = contexte.construire(p)
+    s = contexte.construire(p).series
     reg = seances.REGIMES["paris"]
 
     print("S1 — amplitude du range asiatique rapportee a l'ATR journalier")

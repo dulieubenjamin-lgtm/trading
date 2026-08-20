@@ -27,16 +27,25 @@ CENTILE_BAS, CENTILE_HAUT = 25, 90
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--cache", default="donnees/cache/XAUUSD-M15.csv")
+    ap.add_argument("--cache", default=None,
+                    help="par defaut le M5 s'il existe, sinon le M15")
     ap.add_argument("--debut", default=None)
     ap.add_argument("--fin", required=True, help="derniere date INCLUSE du calibrage")
     a = ap.parse_args()
 
-    b = cache.charger(a.cache)
+    chemin = a.cache
+    if chemin is None:
+        m5 = Path("donnees/cache/XAUUSD-M5.csv")
+        chemin = str(m5) if m5.exists() else "donnees/cache/XAUUSD-M15.csv"
+    b = cache.charger(chemin)
     b = [x for x in b
          if (a.debut is None or str(x.ts.date()) >= a.debut) and str(x.ts.date()) <= a.fin]
+    if len(b) < 500:
+        print(f"Seulement {len(b)} bougies dans cette periode pour {chemin}.")
+        print("Le cache couvre-t-il bien l'intervalle demande ?")
+        return 1
     p, _ = nettoyage.filtrer(b)
-    s = contexte.construire(p)
+    s = contexte.construire(p).series
 
     ratios, vus = [], set()
     for i, bg in enumerate(p):

@@ -80,56 +80,93 @@ def marche_ferme(instant_utc: datetime) -> bool:
     return False
 
 
-def verifier_decalage(bougies, tolerance=timedelta(minutes=30), minimum=100) -> dict:
+DUREE_MINIMALE_FERMETURE = timedelta(hours=4)
+
+
+def _pas_median(bougies) -> timedelta:
+    from statistics import median
+    ecarts = [(b.ts - a.ts).total_seconds()
+              for a, b in zip(bougies[:200], bougies[1:200])]
+    return timedelta(seconds=median(ecarts))
+
+
+def verifier_decalage(bougies, tolerance=timedelta(minutes=30), minimum=100,
+                      duree_minimale=None) -> dict:
     """Assertion : la fermeture hebdomadaire observee tombe-t-elle ou il faut ?
 
-    Localise dans les donnees la derniere bougie reelle avant chaque plage de
-    marche ferme et compare a la fermeture theorique (vendredi 17h New York).
+    Localise les plages de marche fige et compare leur debut a la fermeture
+    theorique (vendredi 17h New York).
 
-    ON TESTE LA MEDIANE, PAS LE MAXIMUM. Une premiere version prenait le pire
-    ecart et bloquait le backtest sur les donnees reelles : deux semaines sur
-    vingt-sept montraient une fermeture avancee de 3-4 h. Ce n'etait pas une
-    erreur de fuseau mais deux jours feries americains (Juneteenth le 19/06,
-    Independence Day observe le 03/07) sur lesquels les marches US ferment tot.
+    UNE FERMETURE SE DEFINIT PAR SA DUREE, PAS PAR UNE SEULE BOUGIE PLATE. Une
+    premiere version retenait toute transition bougie reelle -> bougie figee. En
+    base M15 cela suffisait ; en base M5 l'amplitude de reference est plus basse,
+    si bien que la moindre accalmie de milieu de seance produisait une fausse
+    fermeture — un vendredi 05h45 New York, par exemple. La mediane des ecarts
+    passait de 15 minutes a deux heures, et l'assertion refusait des donnees
+    saines.
 
-    Les deux defauts ne se ressemblent pas, et c'est ce qui permet de les
-    distinguer :
-      - un fuseau errone decale TOUTES les fermetures du MEME montant
-      - un ferie n'en decale QU'UNE, et toujours vers l'avant
+    On ne retient donc que les plages figees durant au moins
+    DUREE_MINIMALE_FERMETURE : un week-end en dure quarante-huit, aucune
+    accalmie n'en approche.
 
-    D'ou : la mediane teste le fuseau, et les valeurs aberrantes sont remontees
-    telles quelles — elles designent des seances ecourtees, information utile
-    puisque le rulebook n'a pas de calendrier des feries (voir setups/ruptures.md).
+    ON TESTE LA MEDIANE, PAS LE MAXIMUM : un fuseau errone decale TOUTES les
+    fermetures du meme montant, un ferie n'en decale qu'une, vers l'avant.
     """
-    from .nettoyage import est_degeneree, amplitude_reference
+    from statistics import median
+
+    from .nettoyage import amplitude_reference, est_degeneree
 
     if len(bougies) < minimum:
         raise ValueError("echantillon trop court pour verifier le decalage")
 
-    reference = amplitude_reference(bougies)
-    controles, ecarts, dates = 0, [], []
+    # Duree au-dela de laquelle une interruption est tenue pour une fermeture
+    # hebdomadaire. Ajustable pour les echantillons courts des tests, ou une
+    # plage de quatre heures ne tient pas.
+    duree_minimale = duree_minimale or DUREE_MINIMALE_FERMETURE
 
-    for precedente, suivante in zip(bougies, bougies[1:]):
-        # Transition reelle -> degeneree : candidate a une fermeture hebdo.
-        if est_degeneree(precedente, reference) or not est_degeneree(suivante, reference):
+    reference = amplitude_reference(bougies)
+    plats = [est_degeneree(b, reference) for b in bougies]
+
+    # Un marche ferme se manifeste de DEUX facons selon le lot de donnees, et il
+    # faut chercher les deux : le flux comble parfois la fermeture avec un prix
+    # fige, parfois il omet simplement les bougies. Le lot sur 7 mois comblait ;
+    # celui sur 36 mois omet (131 trous de plus de 4 h pour ~154 week-ends). Ne
+    # detecter que les plages figees ne trouvait donc que 9 fermetures sur trois
+    # ans, echantillon trop maigre pour que la mediane veuille dire quelque chose.
+    candidats = []                       # (fin de la derniere vraie bougie, sa date)
+    pas = _pas_median(bougies)
+
+    for k in range(len(bougies) - 1):
+        trou = bougies[k + 1].ts - bougies[k].ts
+        if trou >= duree_minimale:
+            candidats.append((bougies[k].ts + pas, bougies[k].ts.date()))
+
+    i = 0
+    while i < len(bougies):
+        if not plats[i]:
+            i += 1
             continue
-        attendue = fermeture_hebdo_attendue(precedente.ts)
-        ecart = abs(attendue - (precedente.ts + timedelta(minutes=15)))
-        # On ne retient que les transitions proches d'un vendredi soir : les
-        # accalmies de milieu de semaine ne sont pas des fermetures hebdo.
-        if ecart > timedelta(hours=12):
-            continue
-        controles += 1
-        ecarts.append(ecart)
-        dates.append(precedente.ts.date())
+        j = i
+        while j + 1 < len(bougies) and plats[j + 1]:
+            j += 1
+        if i > 0 and bougies[j].ts - bougies[i].ts >= duree_minimale:
+            candidats.append((bougies[i].ts, bougies[i - 1].ts.date()))
+        i = j + 1
+
+    controles, ecarts, dates = 0, [], []
+    for instant, date in candidats:
+        attendue = fermeture_hebdo_attendue(instant - pas)
+        ecart = abs(attendue - instant)
+        if ecart <= timedelta(hours=12):
+            controles += 1
+            ecarts.append(ecart)
+            dates.append(date)
 
     if controles == 0:
         raise FuseauIncoherent(
             "aucune fermeture hebdomadaire identifiee : impossible de verifier "
             "le decalage. L'echantillon couvre-t-il au moins un week-end ?"
         )
-
-    from statistics import median
 
     mediane = median(ecarts)
     if mediane > tolerance:

@@ -273,3 +273,80 @@ couvre largement zéro dans les deux sens.
 Le facteur limitant n'est plus la qualité du code ni celle des règles : **c'est
 la quantité de données.** 7 mois donnent 25 trades hors échantillon. Il en
 faudrait 3 à 4 fois plus.
+
+---
+
+# Cinquième passe — 3 ans de M5, et le verdict (20/08)
+
+239 493 bougies M5, septembre 2023 à août 2026. **Calibrage sur la première
+année, test sur les deux suivantes.** La bande de S1 avait été calibrée sur
+janvier–avril 2026, devenus période de test une fois l'historique étendu : elle a
+donc été recalculée sur la première année. Elle bouge peu — [0,24 ; 0,69] →
+[0,25 ; 0,60] — ce qui est en soi rassurant sur sa stabilité.
+
+## O. Deux corrections du détecteur de fermeture, imposées par l'échelle
+
+**Une fermeture se définit par sa durée, pas par une bougie plate.** Le détecteur
+retenait toute transition bougie réelle → bougie figée. En M15 cela suffisait ;
+en M5 l'amplitude de référence est plus basse, si bien que la moindre accalmie de
+milieu de séance produisait une fausse fermeture — un vendredi 05h45 New York,
+par exemple. La médiane des écarts passait de 15 minutes à deux heures et
+l'assertion refusait des données saines. Seules comptent désormais les plages
+figées d'au moins quatre heures : un week-end en dure quarante-huit.
+
+**Un marché fermé se manifeste de deux façons selon le lot.** Le lot sur 7 mois
+*comblait* les week-ends avec un prix figé ; celui sur 36 mois les *omet*
+purement. Ne chercher que les plages figées ne trouvait que 9 fermetures sur
+trois ans. Le détecteur cherche maintenant aussi les trous temporels : 93
+fermetures, **écart médian 0:00**.
+
+**Une anomalie réelle localisée au passage.** Entre octobre 2023 et février 2024,
+les vendredis s'arrêtent une à deux heures trop tôt. Ailleurs, 57 fermetures sur
+58 tombent à 0:00 exactement. Un fuseau erroné décalerait *toutes* les
+fermetures : c'est donc une couverture dégradée du fournisseur sur cette
+fenêtre-là, pas une erreur d'horodatage.
+
+## P. Le verdict
+
+Hors échantillon, septembre 2024 → août 2026, **188 trades** :
+
+| setup | n | réussite | R moyen | écart-type | t | intervalle 95 % |
+|---|---|---|---|---|---|---|
+| **S1** | **97** | 52,6 % | **+0,000** | 1,083 | 0,00 | [−0,215 ; +0,216] |
+| **S3** | **87** | 57,5 % | **+0,059** | 0,956 | 0,57 | [−0,142 ; +0,260] |
+| S2 | 4 | 25 % | −0,545 | 1,061 | −1,03 | [−1,585 ; +0,494] |
+
+Drawdown maximal : **−13,10 R**. Résultat total : **+2,95 R en deux ans**, soit
++1,99 % de capital.
+
+**S1 et S3 dépassent largement le seuil de 20 trades fixé d'avance. On peut donc
+enfin conclure — et la conclusion est qu'aucun des trois n'a d'edge démontrable.**
+
+- **S1 est exactement à zéro** sur 97 trades. Ni gagnant ni perdant : il paie ses
+  frais et rien de plus.
+- **S3 est à +0,059 R, avec t = 0,57.** Il en faudrait 1,96 pour parler d'un
+  effet. L'intervalle couvre zéro des deux côtés.
+- **S2 n'a jamais produit d'échantillon**, en trois ans.
+
+## Q. Pourquoi l'edge de S3 ne sera jamais prouvable
+
+Pour établir un effet de +0,059 R avec un écart-type de 0,956, il faudrait
+**environ 1 000 trades**. S3 en produit 87 en deux ans : cela demanderait
+**23 ans de données**.
+
+Un edge trop petit pour être démontré est aussi trop petit pour être tradé — il
+disparaît sous le premier écart de slippage réel. Ce n'est pas un problème
+d'échantillon insuffisant : c'est la réponse.
+
+## R. Ce que le processus a établi, lui
+
+La démarche a fonctionné, même si les setups ne fonctionnent pas :
+
+- 14 ruptures du rulebook identifiées et corrigées, dont trois qui rendaient un
+  setup mathématiquement incapable de se déclencher
+- l'unité d'exécution portait 63 % de la perte apparente (§L)
+- deux bugs attrapés par les tests, dont un qui vidait le verrou anti-biais
+- la période de calibrage ressortait positive quand le test ne l'était pas (§M) :
+  sans séparation des échantillons, on aurait conclu à un système viable
+
+**Le rulebook a été réfuté proprement.** C'est ce qu'on lui demandait.

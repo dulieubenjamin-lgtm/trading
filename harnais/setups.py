@@ -29,8 +29,8 @@ CORPS_MINIMAL = 0.10    # R8 : sous ce corps, le ratio meche/corps n'a pas de se
 # CALIBREE sur 22/01 -> 30/04/2026 uniquement (outils/calibrer.py), regle de
 # centiles 25e-90e fixee avant tout resultat. Ne jamais recalculer sur la
 # periode de test.
-S1_RATIO_MIN = 0.24
-S1_RATIO_MAX = 0.69
+S1_RATIO_MIN = 0.25
+S1_RATIO_MAX = 0.60
 
 # S3 — anciennete minimale d'un niveau H4 pour etre tenu pour "etabli".
 # R13 : exiger un extreme FRAIS etait auto-contradictoire — un nouvel extreme

@@ -51,7 +51,9 @@ verifie("janvier : nombre de bougies", len(janvier), 21)
 
 print("\n4. Assertion de decalage (le filet de securite)")
 for nom, jeu in (("aout", aout), ("janvier", janvier)):
-    rapport = verifier_decalage(jeu, minimum=20)
+    # Fixtures de 21 a 49 bougies : la plage figee n'y atteint pas les quatre
+    # heures exigees sur un jeu reel. On abaisse le seuil pour ces echantillons.
+    rapport = verifier_decalage(jeu, minimum=20, duree_minimale=timedelta(hours=1))
     verifie(f"{nom} : fermeture hebdo trouvee", rapport["controles"] >= 1, True)
     verifie(f"{nom} : ecart au calendrier forex",
             rapport["ecart_max"] <= timedelta(minutes=30), True)
