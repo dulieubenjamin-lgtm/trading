@@ -215,3 +215,61 @@ Ils portent sur une base **M15**, pas M5 : le déclencheur d'entrée reste une
 clôture M15 (R4 non résolu) et l'ambiguïté intra-bougie porte toujours sur 15
 minutes. Les prix d'entrée sont donc dégradés par rapport à ce que le rulebook
 spécifie, ce qui pénalise mécaniquement les résultats sans qu'on sache de combien.
+
+---
+
+# Quatrième passe — base M5 (20/08)
+
+Le cache M5 est arrivé : 60 461 bougies, 41 263 après filtrage. R4 est résolu —
+le déclencheur d'entrée est enfin une M5, comme le rulebook le spécifiait depuis
+le début. L'ambiguïté intra-bougie porte désormais sur 5 minutes au lieu de 15.
+
+## L. L'unité d'exécution portait l'essentiel de la perte mesurée
+
+Hors échantillon (mai–août), à règles **rigoureusement identiques** :
+
+| | base M15 | base M5 |
+|---|---|---|
+| S1 — trades | 19 | 13 |
+| S1 — R moyen | **−0,391** | **−0,178** |
+| S3 — trades | 9 | 12 |
+| S3 — R moyen | −0,063 | −0,050 |
+| **R total** | **−7,99** | **−2,92** |
+
+**La perte diminue de 63 % sans qu'une seule règle change.** Seul le moment de
+l'entrée diffère : clôture M15 contre clôture M5. Ce que le backtest M15
+mesurait, c'était pour l'essentiel le coût d'entrer trop tard.
+
+C'est la justification rétrospective de R4. Une règle abandonnée « faute de
+données » n'est pas neutre : elle a coûté ici 0,21 R par trade sur S1, soit plus
+de la moitié de la perte apparente.
+
+**Corollaire de méthode.** Tout backtest exécuté sur une unité plus grossière que
+celle du rulebook mesure la stratégie *plus* le coût de l'écart d'exécution, sans
+séparer les deux. C'est un biais silencieux et systématiquement défavorable.
+
+## M. Le calibrage passe positif, le test reste négatif
+
+| | trades | réussite | R total |
+|---|---|---|---|
+| Calibrage (jan–avr) | 21 | 52 % | **+0,22** |
+| **Test (mai–août)** | **25** | 48 % | **−2,92** |
+
+Manuel de cas d'école. Si on avait regardé la seule période de calibrage, on
+aurait conclu à un système à l'équilibre — et on aurait eu tort. C'est
+exactement ce contre quoi la séparation des échantillons protège, et la raison
+de ne jamais publier un chiffre in-sample.
+
+## N. Ce qu'on peut dire, et ce qu'on ne peut pas
+
+**On peut dire** que l'unité d'exécution comptait davantage que n'importe lequel
+des réglages débattus jusqu'ici.
+
+**On ne peut pas dire** si S1 ou S3 ont un edge. 13 et 12 trades hors
+échantillon, contre un seuil de 20 fixé d'avance. Les deux restent négatifs, mais
+à −0,18 et −0,05 R par trade sur si peu de tirages, l'intervalle de confiance
+couvre largement zéro dans les deux sens.
+
+Le facteur limitant n'est plus la qualité du code ni celle des règles : **c'est
+la quantité de données.** 7 mois donnent 25 trades hors échantillon. Il en
+faudrait 3 à 4 fois plus.

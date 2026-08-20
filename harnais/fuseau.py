@@ -143,7 +143,10 @@ def verifier_decalage(bougies, tolerance=timedelta(minutes=30), minimum=100) -> 
         "controles": controles,
         "ecart_median": mediane,
         "ecart_max": max(ecarts),
+        # Dedoublonne : en base M5 le figement est graduel et produit plusieurs
+        # transitions detectees pour une meme fermeture. Ce sont des dates, pas
+        # des evenements distincts.
         "seances_ecourtees": sorted(
-            (d for d, e in zip(dates, ecarts) if e > tolerance), key=lambda x: x
+            {d for d, e in zip(dates, ecarts) if e > tolerance}
         ),
     }
