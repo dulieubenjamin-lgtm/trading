@@ -46,6 +46,26 @@ Deux à trois passages par jour suffisent — la fenêtre de 3 h les couvre sans
 trou. Un passage manqué n'est pas grave ; un passage manqué **non journalisé**
 l'est, parce qu'alors rien ne distingue « pas de signal » de « pas regardé ».
 
+### Le registre, et pourquoi il a trois statuts
+
+`veilles.csv` enregistre chaque passage avec l'empreinte de la spécification
+surveillée ce jour-là. La colonne `statut` vaut :
+
+| statut | sens | code de sortie |
+|---|---|---|
+| `ok` | le cache atteint le présent, le passage couvre les 3 dernières heures | 0 |
+| `ferme` | marché fermé, le cache s'arrête normalement à la clôture | 0 |
+| `perime` | le cache est plus vieux que la fenêtre d'examen : **le passage ne couvre rien** | 3 |
+
+Un passage `perime` n'a pas de compte de signaux — la case reste vide. C'est
+délibéré : si un cache périmé produisait « 0 signal », le registre se remplirait
+de lignes qui ressemblent à de la surveillance et sont en fait de l'aveuglement,
+et la journalisation ne protègerait plus de rien. **Rafraîchir puis relancer.**
+
+**Le comptage démarre au premier passage `ok`.** Les passages `perime` antérieurs
+sont conservés — ils font partie de l'historique honnête du protocole — mais ne
+comptent ni comme couverture ni comme absence de signal.
+
 ### Quand il y a un signal
 
 Le script écrit `journal/papier-live/AAAA-MM-JJTHHMM.plan.md` avec entrée, stop,

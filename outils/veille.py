@@ -34,7 +34,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from harnais import cache, contexte, nettoyage, recherche
+from harnais import cache, contexte, fuseau, nettoyage, recherche
 from harnais.marche import deduire_du_symbole
 
 CACHE = "donnees/cache/XAUUSD-M5.csv"
@@ -45,7 +45,11 @@ RISQUE_PCT = 1.0
 BARRES_RECENTES = 36          # 3 heures de M5 : couvre un ecart entre deux veilles
 
 
+EMPREINTE = ""
+
+
 def verifier_gel():
+    global EMPREINTE
     g = json.loads(Path(GEL).read_text(encoding="utf-8"))
     calcule = hashlib.sha256(
         json.dumps(g["spec"], sort_keys=True, ensure_ascii=False).encode()
@@ -59,7 +63,19 @@ def verifier_gel():
         print("restaure la specification, soit on repart de zero trade.")
         print("!" * 68)
         sys.exit(2)
+    EMPREINTE = g["empreinte"]
     return g["spec"]
+
+
+def statut_couverture(age_min: float, ferme: bool, portee_min: float) -> str:
+    """`ok`, `ferme` ou `perime` — isole pour etre verifiable dans les trois cas.
+
+    L'ordre compte : marche ferme d'abord. Un cache qui s'arrete a la cloture du
+    vendredi n'est pas perime le dimanche, il est complet.
+    """
+    if ferme:
+        return "ferme"
+    return "perime" if age_min > portee_min else "ok"
 
 
 def main() -> int:
@@ -83,9 +99,16 @@ def main() -> int:
     print(f"veille du {maintenant:%Y-%m-%d %H:%M} UTC")
     print(f"   cache : {len(base)} bougies, derniere {derniere:%Y-%m-%d %H:%M} UTC "
           f"({age:.0f} min)")
-    if age > 120:
-        print("   ATTENTION : cache vieux de plus de 2 h. Lancer d'abord")
-        print("   telecharger.py --symbole XAU/USD --intervalle 5min --incremental")
+    # COUVERTURE. Le passage n'examine que les BARRES_RECENTES dernieres bougies
+    # du cache. Si la derniere est plus vieille que cette fenetre, l'examen ne
+    # touche pas le present : il ne couvre rien. Journaliser un tel passage comme
+    # « aucun signal » remplirait le registre de lignes qui ressemblent a de la
+    # surveillance et sont en fait de l'aveuglement — exactement ce que la
+    # journalisation est censee rendre impossible.
+    #
+    # Marche ferme : le retard est normal, le cache s'arrete a la cloture.
+    portee_min = BARRES_RECENTES * 5
+    statut = statut_couverture(age, fuseau.marche_ferme(maintenant), portee_min)
 
     sens = spec["sens"]
     idx = [i for i in recherche.indices_signal(spec, base, biblio, sens)
@@ -101,9 +124,23 @@ def main() -> int:
         nouveau = not registre.exists()
         with registre.open("a", encoding="utf-8") as f:
             if nouveau:
-                f.write("veille_utc;derniere_bougie_utc;signaux\n")
-            f.write(f"{maintenant:%Y-%m-%dT%H:%M}Z;"
-                    f"{derniere:%Y-%m-%dT%H:%M}Z;{len(recents)}\n")
+                f.write("veille_utc;derniere_bougie_utc;statut;signaux;empreinte\n")
+            # Un passage sans couverture n'a pas de compte de signaux a declarer.
+            compte = "" if statut == "perime" else str(len(recents))
+            f.write(f"{maintenant:%Y-%m-%dT%H:%M}Z;{derniere:%Y-%m-%dT%H:%M}Z;"
+                    f"{statut};{compte};{EMPREINTE}\n")
+
+        if statut == "perime":
+            print(f"   PASSAGE SANS COUVERTURE : le cache s'arrete il y a "
+                  f"{age / 60:.0f} h, la fenetre d'examen n'en couvre que "
+                  f"{portee_min / 60:.0f}.")
+            print("   Rafraichir puis relancer :")
+            print("   python3 outils/telecharger.py --symbole XAU/USD "
+                  "--intervalle 5min --incremental")
+            print("   (journalise comme « perime » : ce passage ne compte pas)")
+            return 3
+        if statut == "ferme":
+            print("   marche ferme : le cache s'arrete normalement a la cloture.")
 
     if not recents:
         print(f"   aucun signal sur les {BARRES_RECENTES} dernieres bougies "
@@ -135,7 +172,7 @@ def main() -> int:
     plan = f"""---
 id: {horodatage}
 specification: {spec['nom']}
-empreinte: {json.loads(Path(GEL).read_text(encoding='utf-8'))['empreinte']}
+empreinte: {EMPREINTE}
 bougie_signal: {b.ts:%Y-%m-%d %H:%M}Z ({locale:%H:%M} {ville})
 statut: PLANIFIE
 ---
