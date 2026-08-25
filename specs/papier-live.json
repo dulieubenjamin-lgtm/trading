@@ -1,0 +1,53 @@
+{
+ "spec": {
+  "nom": "tete-epaules-inverse-filtre-h4",
+  "famille": "figures",
+  "sens": "achat",
+  "tp_r": 2.0,
+  "conditions": [
+   {
+    "gauche": {
+     "ind": "tete_epaules_inverse",
+     "ut": "M15",
+     "params": [
+      3,
+      0.9,
+      80,
+      0.5
+     ]
+    },
+    "op": "croise_haut",
+    "droite": {
+     "const": 0.5
+    }
+   },
+   {
+    "gauche": {
+     "prix": "cloture"
+    },
+    "op": ">",
+    "droite": {
+     "ind": "ema",
+     "ut": "H4",
+     "params": [
+      50
+     ]
+    }
+   }
+  ],
+  "stop": {
+   "type": "extreme_recent",
+   "n": 12
+  },
+  "fenetre_horaire": [
+   1,
+   22
+  ],
+  "fuseau": "Europe/Paris"
+ },
+ "gele_le": "2026-08-25",
+ "origine": "preenregistrement/2026-08-20-tete-epaules.md",
+ "note": "SPECIFICATION GELEE. Toute modification invalide le comptage en cours et impose de repartir de zero trade. Le script de veille verifie l empreinte a chaque execution.",
+ "empreinte": "11d8e566a7b5baad",
+ "fenetre": "01h-22h Europe/Paris, position soldee a 22h. Contrainte d operateur declaree au premier jour du projet : intraday de Tokyo a New York, rien la nuit. La specification gelee le 2026-08-20 ne la portait pas — elle tenait des positions pendant la nuit via le plafond de 12 h. Corrige ici a ZERO trade compte, donc sans rien invalider. Mesure de reference avec stop symetrique : z +2,45 sans la contrainte, +2,66 avec, sur respectivement 202 et 188 trades. L ecart est du bruit et n est PAS a lire comme une amelioration."
+}
