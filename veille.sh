@@ -27,6 +27,11 @@ if [ "$code" -ne 0 ] && [ "$code" -ne 3 ]; then
     exit "$code"
 fi
 
+# Denouer AVANT d'archiver : un plan devenu caduc doit partir dans le meme
+# passage que sa constatation, sinon le registre et les issues divergent.
+python3 outils/issue.py
+echo
+
 # On n'ajoute que ce que la routine produit. Jamais -A : le depot peut contenir
 # du travail en cours qui ne regarde pas la veille.
 git add donnees/cache journal/papier-live 2>/dev/null || true

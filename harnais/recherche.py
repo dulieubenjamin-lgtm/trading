@@ -262,6 +262,37 @@ def _stop_initial(spec, i, base, biblio, sens):
     return b.cloture - s * float(st.get("mult", 1.5)) * a
 
 
+def denouer(base, i_entree, stop, objectif, sens, limite, zone=None,
+            h_max=None):
+    """Rejoue les bougies apres l'entree et renvoie (indice, prix, motif).
+
+    UNE SEULE IMPLEMENTATION, appelee par le backtest ET par le journal papier
+    live. Si le live etait denoue par un autre code -- a plus forte raison par un
+    humain -- les deux echantillons ne seraient plus comparables, et toute la
+    comparaison qui justifie le protocole tomberait.
+
+    Conventions, toutes defavorables et identiques a celles du moteur :
+      - quand une bougie contient a la fois le stop et l'objectif, l'ordre reel
+        est indeterminable a partir d'un OHLC : on tranche TOUJOURS pour le stop
+      - la limite de duree et le bord de seance sortent a la cloture
+    Renvoie (None, None, "ouvert") si aucune sortie n'est encore survenue.
+    """
+    s = 1 if sens == "achat" else -1
+    for j in range(i_entree + 1, len(base)):
+        x = base[j]
+        if (x.bas <= stop) if s > 0 else (x.haut >= stop):
+            return j, stop, "stop"
+        if (x.haut >= objectif) if s > 0 else (x.bas <= objectif):
+            return j, objectif, "objectif"
+        if limite is not None and x.ts >= limite:
+            return j, x.cloture, "duree"
+        if zone is not None and h_max is not None:
+            t = x.ts.astimezone(zone)
+            if t.hour + t.minute / 60 >= h_max:
+                return j, x.cloture, "seance"
+    return None, None, "ouvert"
+
+
 def simuler(spec, base, candidats, biblio, sens="achat",
             max_trades_jour=2, spread_bp=SPREAD_BP, duree_max=DUREE_MAX,
             distances=None) -> Resultat:
@@ -360,24 +391,8 @@ def simuler(spec, base, candidats, biblio, sens="achat",
         objectif = entree + s * tp_r * risque
         limite = be.ts + duree_max
 
-        j, sortie = i_entree + 1, None
-        while j < n:
-            x = base[j]
-            touche_stop = (x.bas <= stop) if s > 0 else (x.haut >= stop)
-            touche_tp = (x.haut >= objectif) if s > 0 else (x.bas <= objectif)
-            if touche_stop:                      # le stop l'emporte en cas d'ambiguite
-                sortie = stop
-                break
-            if touche_tp:
-                sortie = objectif
-                break
-            if x.ts >= limite:
-                sortie = x.cloture
-                break
-            if zone is not None and h_max is not None and _heure(x.ts) >= h_max:
-                sortie = x.cloture          # plat de fin de seance
-                break
-            j += 1
+        j, sortie, _motif = denouer(base, i_entree, stop, objectif, sens, limite,
+                                    zone, h_max)
         if sortie is None:
             break
         sortie -= s * cout

@@ -100,6 +100,41 @@ Ajouter un fichier `<horodatage>.issue.md` séparé — stop touché, objectif t
 ou sortie de séance — et le commiter. Deux fichiers, deux commits, deux dates :
 l'historique git prouve que le plan précède l'issue.
 
+### Voir où on en est
+
+```bash
+python3 outils/journal.py           # au terminal
+python3 outils/journal.py --html    # page à ouvrir dans le navigateur
+```
+
+Le journal montre **tout** : chaque trade, le R moyen courant, la discipline de
+veille, et un audit git vérifiant que chaque plan a bien été commité avant la
+sortie de son trade.
+
+Rien n'est masqué, délibérément. Cacher le résultat jusqu'à l'échéance serait à
+la fois condescendant et inefficace — additionner dix nombres visibles ne demande
+aucun effort. Ce qui protège réellement d'une lecture prématurée est le
+**contexte** : à n = 12 l'intervalle de confiance couvre à peu près tout ce qui
+est concevable, et affiché à côté de la moyenne il rend la sur-interprétation
+difficile plutôt qu'interdite. La discipline vient de la règle d'arrêt écrite
+d'avance, pas d'une donnée dissimulée.
+
+### Seuls les signaux détectés en direct comptent
+
+Un signal retrouvé en rejouant l'historique **n'entre pas** dans l'échantillon,
+même s'il tombe après la date de gel et qu'il est donc formellement hors
+échantillon.
+
+La raison n'est pas statistique, elle est procédurale. Autoriser le rejeu rend la
+frontière entre « live » et « reconstitué » négociable, et c'est dans cette
+négociation que le biais entre : rien n'empêcherait plus, dans deux ans, de
+rattraper les quinze jours où la veille n'a pas tourné — en ayant vu entre-temps
+comment le marché s'est comporté. Une règle qu'on peut assouplir au cas par cas
+n'est pas une règle.
+
+`--essai` sert à vérifier l'outil sur un signal historique. Ce qu'il produit
+porte l'extension `.essai.md` et n'est jamais compté.
+
 ---
 
 ## 3. Ce qui est gelé, et ce que « gelé » interdit

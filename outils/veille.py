@@ -169,11 +169,22 @@ def main() -> int:
 
     print(f"\n   *** SIGNAL — {spec['nom']} ({sens}) sur la bougie "
           f"{b.ts:%H:%M} UTC / {locale:%H:%M} {ville} ***")
+    # Les valeurs sont AUSSI en en-tete, pas seulement dans le tableau : le
+    # journal les relira dans deux ans, et un tableau markdown se reformate au
+    # premier coup d'editeur. L'en-tete, lui, se parse.
     plan = f"""---
 id: {horodatage}
 specification: {spec['nom']}
 empreinte: {EMPREINTE}
-bougie_signal: {b.ts:%Y-%m-%d %H:%M}Z ({locale:%H:%M} {ville})
+bougie_signal: {b.ts:%Y-%m-%d %H:%M}Z
+bougie_signal_locale: {locale:%Y-%m-%d %H:%M} {ville}
+sens: {sens}
+entree: {entree:.2f}
+stop: {stop:.2f}
+objectif: {objectif:.2f}
+risque_unitaire: {risque:.2f}
+taille: {taille:.4f}
+tp_r: {float(spec.get('tp_r', 2.0))}
 statut: PLANIFIE
 ---
 

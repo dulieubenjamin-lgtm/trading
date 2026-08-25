@@ -8,3 +8,7 @@ __pycache__/
 # Cle API : elle se lit dans l'environnement, jamais dans un fichier.
 .env
 *.key
+
+# Le journal HTML se regenere d'une commande a partir des plans et des issues.
+# Le versionner ferait diverger deux representations de la meme verite.
+journal/papier-live/journal.html
