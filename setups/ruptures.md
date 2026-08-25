@@ -779,3 +779,53 @@ tester sans changer d'objet.
 La spécification a été regelée avec la contrainte, empreinte `11d8e566a7b5baad`.
 C'était gratuit : zéro trade était compté. Le même écart découvert au
 cinquantième trade aurait imposé de tout reprendre.
+
+## MM. Un contrôle qui ne peut pas échouer n'est pas un contrôle
+
+**Trouvé en auditant le cache après la première mise à jour incrémentale.**
+
+`test_donnees.py` valide le harnais sur des fixtures figées. Rien ne validait le
+cache **réel** — celui dans lequel `--incremental` écrit deux fois par jour, et
+dont dépend un protocole prévu pour durer des années. Une soudure ratée ne lève
+aucune erreur : elle produit des bougies, qui se lisent comme du prix.
+
+D'où `outils/verifier_cache.py`. Mais la première version avait deux défauts qui
+valent d'être notés, parce qu'ils sont le mode de défaillance des outils de
+vérification en général.
+
+**Défaut 1 — le contrôle qui affiche au lieu de juger.** Le test des trous
+imprimait « 879 interruptions, dont 718 en séance ouverte » et se déclarait `ok`
+inconditionnellement. Un chiffre alarmant, présenté comme un succès. Un contrôle
+dont l'issue ne dépend pas de ce qu'il mesure décore le rapport ; il ne le
+valide pas.
+
+**Défaut 2 — la mauvaise question.** Corrigé pour échouer, il échouait sur des
+week-ends. Il demandait « le marché est-il fermé à l'instant où le trou
+s'ouvre ? » alors que le flux cesse de livrer *avant* 17 h New York : un trou de
+week-end s'ouvre marché encore ouvert. La bonne question porte sur le **milieu**
+du trou, pas sur son bord.
+
+Et même corrigé, il rangeait 404 interruptions en anomalies — parce qu'une
+interruption ne se juge pas à sa durée mais à sa **cause**. Une fois nommées :
+
+| | |
+|---|---|
+| 340 | bascule quotidienne de 17 h New York (~1 h) |
+| 224 | week-ends |
+| 64 | inexpliquées, **0,75 %** de l'historique |
+
+Trois anomalies dépassent 12 h : Noël 2024, Jour de l'an 2025 — le calendrier du
+harnais ne connaît que les week-ends, pas les fériés — et **un vrai trou de flux
+du lundi 14 avril 2025 au jeudi 17 avril**, deux jours ouvrés absents. Il réduit
+l'échantillon de ~0,2 % sans biais directionnel.
+
+### Ce que l'audit a confirmé, et qui compte plus que ce qu'il a trouvé
+
+**Écart médian de 0:00:00 entre la fermeture hebdomadaire observée et sa position
+théorique, sur 93 fermetures.** Le fuseau du cache est exact, et la mise à jour
+incrémentale ne l'a pas décalé. C'est la propriété dont dépend tout le reste :
+un décalage d'une heure aurait déplacé chaque filtre de séance sans rien casser
+de visible.
+
+La leçon : **un rapport de vérification qui n'affiche que des `ok` n'apprend
+rien ; ce qui apprend, c'est de savoir quelle question chaque ligne a posée.**
