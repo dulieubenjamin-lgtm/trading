@@ -198,6 +198,8 @@ def main() -> int:
                     help="unite de temps (defaut 15min)")
     ap.add_argument("--sortie", default=None,
                     help="par defaut donnees/cache/XAUUSD-<UT>.csv")
+    ap.add_argument("--incremental", action="store_true",
+                    help="ne tirer que les bougies posterieures au cache existant")
     ap.add_argument("--sonder", action="store_true",
                     help="mesure la profondeur d'historique servie, sans rien ecrire")
     args = ap.parse_args()
@@ -239,6 +241,29 @@ def main() -> int:
 
     if args.sonder:
         return sonder(cle, args.intervalle, args.symbole)
+
+    if args.incremental and lignes:
+        # Mise a jour quotidienne : une requete au lieu de soixante-dix-huit.
+        derniere = max(lignes)
+        depuis = datetime.fromisoformat(derniere).replace(tzinfo=timezone.utc)
+        print(f"mise a jour incrementale depuis {derniere} UTC")
+        try:
+            recues = tirer(cle, depuis, datetime.now(timezone.utc),
+                           args.intervalle, args.symbole)
+        except Exception as e:
+            print(f"ECHEC : {e}")
+            return 4
+        avant_maj = len(lignes)
+        for l in recues:
+            lignes[l.split(";")[0]] = l
+        ordonnees = [lignes[k] for k in sorted(lignes)]
+        cible.write_text(
+            "\n".join(["# timezone: UTC", EN_TETE] + ordonnees) + "\n",
+            encoding="utf-8")
+        print(f"{cible} : {avant_maj} -> {len(lignes)} bougies "
+              f"(+{len(lignes) - avant_maj})")
+        print(f"couverture : {ordonnees[-1].split(';')[0]} UTC")
+        return 0
 
     debut_dispo = profondeur_disponible(cle, args.intervalle, args.symbole)
     mois = args.mois
