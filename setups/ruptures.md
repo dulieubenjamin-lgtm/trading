@@ -721,3 +721,61 @@ le ferait : la même figure, sans aucun réglage, sur trois ou quatre instrument
 supplémentaires. Coût : un téléchargement et un run. C'est exactement le protocole
 qui a réfuté l'hypothèse de régime en deux minutes après cinq ans d'attente
 annoncés.
+
+## LL. La spécification gelée ne respectait pas la contrainte de l'opérateur
+
+**Découvert en construisant la veille papier live, à zéro trade compté.**
+
+La toute première ligne du cahier des charges de ce projet dit : intraday, de la
+session de Tokyo à New York, **rien la nuit, à plat à 22 h Paris**. C'est la
+contrainte la moins négociable de toutes — elle ne vient pas d'une hypothèse de
+marché mais du fait que l'opérateur dort.
+
+Le moteur ne l'a jamais appliquée. `simuler` sort sur trois conditions : stop,
+objectif, ou plafond de douze heures. Aucune ne ferme la séance. Une entrée à
+20 h Paris tenait donc la position **jusqu'à 8 h le lendemain matin** — toute la
+nuit asiatique, précisément ce qui était exclu.
+
+Le champ `fenetre_horaire` existait, mais il se lisait en UTC et ne filtrait que
+les *entrées*, jamais les sorties. Et la spécification gelée le 20/08 ne le
+portait même pas.
+
+### Pourquoi ça n'a pas été vu plus tôt
+
+Parce que la recherche mesurait une **question de prédiction** — cette figure
+contient-elle de l'information ? — et que pour cette question l'heure de sortie
+est un détail. Le passage au papier live change la question : ce n'est plus
+« qu'y a-t-il dans les données » mais « que va faire cette personne demain
+matin ». Une spécification qu'on ne peut pas exécuter ne mesure rien, parce que
+les signaux non pris disparaissent silencieusement de l'échantillon.
+
+**Un backtest répond à une question différente de celle d'un protocole live, et
+c'est au moment de passer de l'un à l'autre que l'écart devient visible.**
+
+### Ce qui a été corrigé
+
+`simuler` accepte désormais un champ `fuseau`. Quand il est présent, la fenêtre
+se lit en heure locale — donc suit le changement d'heure — **et la position est
+soldée à son bord haut**. Quand il est absent, le comportement est identique à
+l'octet près : le harnais porte des mesures publiées, les déplacer en silence
+serait pire qu'un bug. `harnais/tests/test_seance.py` vérifie les deux.
+
+### Ce que la correction a coûté, et ce qu'il ne faut PAS en conclure
+
+Mesure de référence, témoin apparié par sens, stop symétrique, sur les 36 mois :
+
+| | n | excès | z |
+|---|---|---|---|
+| spécification du 20/08, sans contrainte | 202 | +0,218 R | +2,45 |
+| avec séance 01h–22h Paris et plat à 22 h | 188 | +0,232 R | +2,66 |
+
+Le z monte. **Ce n'est pas une amélioration, c'est du bruit** — 14 trades de
+moins sur 202, et l'écart est très inférieur à l'erreur d'échantillonnage.
+Le lire comme un gain serait exactement la sélection que ce carnet documente
+depuis §A. Ce que ce tableau établit est plus modeste et suffisant : **appliquer
+la contrainte réelle ne détruit pas l'anomalie**, donc le papier live peut la
+tester sans changer d'objet.
+
+La spécification a été regelée avec la contrainte, empreinte `11d8e566a7b5baad`.
+C'était gratuit : zéro trade était compté. Le même écart découvert au
+cinquantième trade aurait imposé de tout reprendre.

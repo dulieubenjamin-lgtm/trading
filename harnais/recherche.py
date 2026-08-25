@@ -22,6 +22,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import timedelta
+from zoneinfo import ZoneInfo
 
 from . import agregation, alignement, formes, indicateurs, indicateurs_etendus as ie
 from .marche import resoudre
@@ -276,10 +277,26 @@ def simuler(spec, base, candidats, biblio, sens="achat",
     tp_r = float(spec.get("tp_r", 2.0))
     res = Resultat(nom=spec.get("nom", "?"))
 
+    # FENETRE HORAIRE ET PLAT DE FIN DE SEANCE
+    # ----------------------------------------
+    # Sans `fuseau`, la fenetre se lit en UTC et ne ferme pas les positions :
+    # c'est le comportement historique, inchange, pour que toute mesure deja
+    # publiee reste valide a l'octet pres.
+    #
+    # Avec `fuseau` (ex. "Europe/Paris"), la fenetre se lit dans ce fuseau ET la
+    # position est soldee a son bord haut. C'est la seule facon de modeliser une
+    # contrainte d'operateur reelle — « a plat a 22 h, je dors » — qu'un plafond
+    # de duree fixe ne capture pas : entrer a 20 h avec douze heures de laisse
+    # fait tenir la position toute la nuit.
     fenetre = spec.get("fenetre_horaire")
     h_min = h_max = None
     if fenetre and len(fenetre) == 2:
         h_min, h_max = float(fenetre[0]), float(fenetre[1])
+    zone = ZoneInfo(spec["fuseau"]) if spec.get("fuseau") else None
+
+    def _heure(ts):
+        t = ts.astimezone(zone) if zone else ts
+        return t.hour + t.minute / 60
 
     jour_courant, pris_ce_jour = None, 0
     jours = set()
@@ -292,11 +309,9 @@ def simuler(spec, base, candidats, biblio, sens="achat",
         if not candidats[i] or pris_ce_jour >= max_trades_jour:
             i += 1
             continue
-        if h_min is not None:
-            h = b.ts.hour + b.ts.minute / 60
-            if not (h_min <= h < h_max):
-                i += 1
-                continue
+        if h_min is not None and not (h_min <= _heure(b.ts) < h_max):
+            i += 1
+            continue
         res.signaux += 1
 
         # ENTREE EN REPLI. La mesure des excursions montre que les setups a
@@ -359,6 +374,9 @@ def simuler(spec, base, candidats, biblio, sens="achat",
             if x.ts >= limite:
                 sortie = x.cloture
                 break
+            if zone is not None and h_max is not None and _heure(x.ts) >= h_max:
+                sortie = x.cloture          # plat de fin de seance
+                break
             j += 1
         if sortie is None:
             break
@@ -395,6 +413,21 @@ def executer_spec(spec, base, biblio, max_trades_jour=2) -> dict:
         combine = [all(t[i] for t in tableaux) for i in range(len(base))]
         sorties[sens] = simuler(spec, base, combine, biblio, sens, max_trades_jour)
     return sorties
+
+
+def dans_fenetre(spec, ts) -> bool:
+    """La bougie tombe-t-elle dans la fenetre d'operation de la spec ?
+
+    Expose separement parce que `indices_signal` renvoie les declenchements
+    bruts : la veille papier live doit, elle, ignorer ce qui tombe hors seance,
+    sinon elle proposerait des trades que l'operateur ne prendra pas — et un
+    signal propose puis non pris est un trou silencieux dans l'echantillon.
+    """
+    fen = spec.get("fenetre_horaire")
+    if not fen or len(fen) != 2:
+        return True
+    t = ts.astimezone(ZoneInfo(spec["fuseau"])) if spec.get("fuseau") else ts
+    return float(fen[0]) <= t.hour + t.minute / 60 < float(fen[1])
 
 
 def indices_signal(spec, base, biblio, sens):
