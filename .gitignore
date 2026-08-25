@@ -12,3 +12,10 @@ __pycache__/
 # Le journal HTML se regenere d'une commande a partir des plans et des issues.
 # Le versionner ferait diverger deux representations de la meme verite.
 journal/papier-live/journal.html
+
+# Copies de sauvegarde du cache : git porte deja la version suivie, et
+# `git show HEAD:donnees/cache/XAUUSD-M5.csv` la restitue a tout moment.
+# Sans cette ligne, le `git add donnees/cache` de veille.sh embarquerait un
+# doublon de quinze megaoctets a chaque passage.
+donnees/cache/*-twelvedata.csv
+donnees/cache/*.bak
