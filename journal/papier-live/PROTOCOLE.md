@@ -62,9 +62,26 @@ délibéré : si un cache périmé produisait « 0 signal », le registre se rem
 de lignes qui ressemblent à de la surveillance et sont en fait de l'aveuglement,
 et la journalisation ne protègerait plus de rien. **Rafraîchir puis relancer.**
 
-**Le comptage démarre au premier passage `ok`.** Les passages `perime` antérieurs
-sont conservés — ils font partie de l'historique honnête du protocole — mais ne
+**Le comptage démarre au premier passage `ok`.** Les passages `perime` sont
+conservés — ils font partie de l'historique honnête du protocole — mais ne
 comptent ni comme couverture ni comme absence de signal.
+
+### Une seule machine écrit dans le registre
+
+`veilles.csv` n'est alimenté que par **la machine d'exploitation**, celle depuis
+laquelle tu surveilles réellement. Un lancement de `veille.py` ailleurs — dans un
+conteneur de développement, pour vérifier que l'outil marche — est un test
+d'outil, pas une veille : il ne s'inscrit pas au registre.
+
+Deux raisons, et la seconde est la vraie. La première est mécanique : un CSV en
+ajout écrit depuis deux endroits produit un conflit git à chaque `pull`, et
+résoudre un conflit à la main dans le registre d'un protocole anti-biais est
+précisément ce qu'on ne veut jamais avoir à faire. La seconde est de fond : le
+registre existe pour prouver que les jours sans signal ont été **surveillés**.
+Une ligne écrite par une machine qui ne surveille rien ne prouve rien, et
+affaiblit toutes les autres en diluant ce que « veille » veut dire.
+
+Pour tester l'outil sans toucher au registre : `python3 outils/veille.py --essai`.
 
 ### Quand il y a un signal
 
