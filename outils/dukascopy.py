@@ -43,6 +43,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -140,23 +141,49 @@ def main() -> int:
           f"({total_h} fichiers horaires, echelle {echelle})")
     print("Dukascopy sert un fichier par heure : compter une a deux heures.\n")
 
-    ticks, vides, quand, fait = [], 0, debut, 0
-    while quand < fin:
+    # PARALLELE. Vingt-six mille requetes en serie prennent deux heures ; huit
+    # de front les ramenent a une vingtaine de minutes. Huit et pas trente :
+    # ce sont des fichiers statiques sur le serveur public d'une banque, et
+    # rien ne justifie de le marteler.
+    heures = [debut + timedelta(hours=k) for k in range(total_h)]
+    fait = [0]
+
+    def une(quand):
         try:
             brut = tirer_heure(args.symbole, quand)
         except Exception as e:
-            print(f"\nECHEC sur {quand:%Y-%m-%d %Hh} : {e}")
-            print("Rien n'a ete ecrit. Relancer.")
-            return 4
-        if brut:
+            return quand, None, e
+        finally:
+            fait[0] += 1
+            if fait[0] % 2000 == 0:
+                print(f"  {fait[0]}/{total_h} heures")
+        return quand, brut, None
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        resultats = list(pool.map(une, heures))
+
+    # UN ECHEC ISOLE N'ARRETE PAS TOUT, mais un taux d'echec eleve si. Quelques
+    # heures perdues sur vingt-six mille laissent un trou que verifier_cache.py
+    # attrapera ; une panne systematique produirait un historique amputé qui,
+    # lui, se lirait comme un marche calme.
+    ticks, vides, echecs = [], 0, []
+    for quand, brut, err in resultats:
+        if err is not None:
+            echecs.append((quand, err))
+        elif brut:
             ticks += decoder(brut, quand, echelle)
         else:
             vides += 1
-        fait += 1
-        if fait % 250 == 0:
-            print(f"  {fait}/{total_h} heures  ({len(ticks)} ticks, "
-                  f"{vides} heures vides)")
-        quand += timedelta(hours=1)
+    ticks.sort()
+
+    if echecs:
+        taux = len(echecs) / total_h
+        print(f"\n{len(echecs)} heures en echec sur {total_h} ({100 * taux:.2f} %)")
+        print(f"   premiere : {echecs[0][0]:%Y-%m-%d %Hh} — {echecs[0][1]}")
+        if taux > 0.02:
+            print("   TAUX TROP ELEVE : rien n'est ecrit. Verifier le reseau,")
+            print("   puis relancer.")
+            return 4
 
     if not ticks:
         print("\nAUCUN TICK. Symbole inconnu de Dukascopy, ou echelle erronee.")
