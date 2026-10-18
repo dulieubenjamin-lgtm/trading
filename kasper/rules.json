@@ -1,6 +1,6 @@
 {
   "_commentaire": "Regles de Benjamin, au format lu par morning_brief (src/core/morning.js) : watchlist, default_timeframe, bias_criteria, risk_rules, notes. A copier dans ~/claudeverstradingview/rules.json. Aucun ordre reel : analyse, dessins et alertes seulement.",
-  "version": "2026-10-18",
+  "version": "2026-10-18-scalp",
   "watchlist": [
     "XAUUSD",
     "BTCUSD",
@@ -8,7 +8,7 @@
   ],
   "default_timeframe": "240",
   "bias_criteria": {
-    "strategie": "OB obscanner (4h, 1h, daily) + confirmation petites unites (M1, M5, M10, via data_get_pine_boxes sur OB Kasper Mentorat V1.5 no-cooldown)",
+    "strategie": "SCALPING : sens et zones d interet en 1h/4h/daily (obscanner + structure), zones d entree OB Kasper M10/M5, confirmation M1",
     "confirmation_requise_au_moins_une": [
       "cassure de structure dans le sens du trade",
       "imbalance (FVG) laissee derriere le prix",
@@ -16,11 +16,11 @@
     ],
     "zone_trop_loin_pct": 1,
     "zone_deja_touchee": "signaler, ne pas proposer de plan",
-    "stop": "au-dela du bord lointain de la zone OB, marge 0,1 % (ou au-dela du point bas/haut de la confirmation s il est plus loin)",
+    "stop": "au-dela du bord lointain de la zone M5/M10, marge 0,1 % (a revoir si le stop devient trop large pour du scalping)",
     "tp": {
-      "tp1": "ratio 1:2 depuis l entree confirmee",
+      "tp1": "ratio 1:2",
       "tp2": "ratio 1:3",
-      "tp3": "prochaine zone OB opposee si elle existe, sinon pas de TP3"
+      "tp3": "prochaine zone OB opposee M10/M5 ou zone obscanner, la plus proche"
     },
     "pedagogie_obligatoire": [
       "pourquoi cette zone (quel mouvement l'a creee)",
@@ -29,7 +29,7 @@
       "pourquoi ces TP (ratio ou zone opposee)",
       "ce qui ferait renoncer au trade"
     ],
-    "declencheur": "La CONFIRMATION dans le sens du trade declenche le trade, jamais le simple contact avec la zone OB. Prix dans la zone = on regarde ; confirmation = on entre ; pas de confirmation = pas de trade.",
+    "declencheur": "Le contact avec la zone M5/M10 ne declenche rien ; seule la confirmation M1 dans le sens de la 1h declenche l entree.",
     "sequence": [
       "1. Zone OB obscanner (4h, 1h ou daily) intacte et a moins de 1 % du prix",
       "2. Le prix entre dans la zone : alerte, on surveille les petites unites",
@@ -52,9 +52,9 @@
       },
       {
         "question": "3. La confirmation est-elle la ?",
-        "donnee": "OB Kasper en M1/M5/M10 (data_get_pine_boxes), Imbalance, Zones Liquidites",
-        "sert_a": "declencher ou non l entree ; lu SEULEMENT si le prix est dans ou tout pres d une zone",
-        "condition": "prix a moins de 0,3 % de la zone ou dedans"
+        "donnee": "OB Kasper M10/M5 (zones d entree) puis structure M1 (confirmation)",
+        "sert_a": "declencher ou non l entree",
+        "condition": "zones M10/M5 lues a chaque brief et point horaire ; M1 lu seulement si le prix est dans une zone M5/M10"
       },
       {
         "question": "4. Jusqu ou ?",
@@ -62,7 +62,14 @@
         "sert_a": "TP3 et realisme des TP"
       }
     ],
-    "a_ne_pas_lire": "Ultimate Kasper, KTA Momentum et tout autre indicateur ne sont lus que s ils changent la decision ; morning_brief (qui lit toutes les valeurs d indicateurs) n est pas utilise pour les points horaires."
+    "a_ne_pas_lire": "Ultimate Kasper, KTA Momentum et tout autre indicateur ne sont lus que s ils changent la decision ; morning_brief (qui lit toutes les valeurs d indicateurs) n est pas utilise pour les points horaires.",
+    "etages": {
+      "1_sens": "structure 4h et 1h (derniers hauts/bas, derniere cassure) + panneau Tendance Kasper. On ne scalpe QUE dans le sens de la 1h ; si 1h et 4h divergent, priorite basse et risque 0,5 %.",
+      "2_zones_d_interet": "zones OB obscanner 1h/4h/daily intactes : priorite aux scalps dont la zone M5/M10 est dans ou pres d une zone obscanner.",
+      "3_zone_d_entree": "OB Kasper en M10 ou M5 (data_get_pine_boxes), intact, dans le sens de la 1h.",
+      "4_confirmation": "en M1 : cassure de structure dans le sens du trade une fois le prix dans la zone M5/M10 (ou prise de liquidite puis cassure).",
+      "5_entree": "au retour dans le petit OB ou l imbalance M1 laisse par la confirmation."
+    }
   },
   "risk_rules": {
     "mode": "analyse_seule",
@@ -77,25 +84,27 @@
       "premiere_entree": "09:00",
       "derniere_entree": "18:00",
       "flat_obligatoire": "22:00",
-      "week_end": "BTCUSD seul ; XAUUSD et EURUSD recalcules le lundi"
+      "week_end": "BTCUSD seul ; XAUUSD et EURUSD recalcules le lundi",
+      "meilleures_fenetres_scalp": [
+        "09:00-11:30 (ouverture Londres)",
+        "14:30-17:00 (ouverture New York)"
+      ]
     },
     "alertes": {
-      "par_actif_max": 1,
-      "niveau": "bord proche de la zone OB : signifie zone atteinte, chercher la confirmation ; ce n est PAS un signal d entree",
-      "rappeler_avec_l_alerte": [
-        "SL",
-        "TP1",
-        "TP2",
-        "TP3 si zone opposee"
-      ],
-      "methode": "ui_keyboard Alt+A, choisir la ligne du symbole dans Condition (pas un indicateur), verifier avec alert_list",
-      "expiration": "23:59 le jour meme : proposer le renouvellement au brief du matin",
+      "par_actif_max_actives": 1,
+      "niveau": "bord proche de l OB M5/M10 intact le plus proche, dans le sens de la 1h : zone atteinte = regarder la confirmation M1, pas entrer",
+      "message": "prefixe [OB-SCALP] + actif + zone + sens",
+      "expiration": "2 heures si le champ Expiration est reglable, sinon par defaut",
+      "qui_pose": "le brief du matin et chaque point horaire (seulement si aucune alerte [OB-SCALP] active pour cet actif)",
+      "methode": "ui_keyboard Alt+A, Condition = ligne du symbole (pas un indicateur), verifier avec alert_list",
+      "suppression": "jamais (alert_delete bloque)",
       "canal": "notification TradingView telephone + ordinateur"
     },
     "dessins": {
       "zone_vendeuse": "rectangle rouge",
       "zone_acheteuse": "rectangle vert",
-      "niveaux": "lignes horizontales etiquetees Entree, SL, TP1, TP2, TP3"
+      "niveaux": "lignes horizontales etiquetees Entree, SL, TP1, TP2, TP3",
+      "lignes": "SL/TP uniquement pour le plan principal de chaque actif ; plans secondaires : rectangle seul"
     },
     "interdits": [
       "Ne jamais lancer scalper-run.js ni rien lie a BitGet.",
@@ -109,11 +118,12 @@
     "type": "tableau",
     "colonnes": [
       "Actif",
-      "Sens",
-      "Zone OB (UT)",
+      "Sens 1h / 4h",
+      "Zone d interet obscanner",
+      "Zone d entree M10/M5",
       "Prix / distance",
       "Statut",
-      "Confirmation attendue",
+      "Confirmation M1 attendue",
       "Entree",
       "SL",
       "TP1",

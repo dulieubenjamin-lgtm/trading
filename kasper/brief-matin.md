@@ -1,4 +1,13 @@
-# Gabarit du brief du matin (8 h, heure de Paris)
+# Gabarit du brief du matin (7 h 15, heure de Paris) — version scalping
+
+**Les quatre étages du scalp**
+1. **Sens** : structure 1h et 4h. On ne scalpe que dans le sens de la 1h.
+2. **Zones d'intérêt** : zones OB obscanner 1h, 4h, daily intactes. Priorité aux scalps qui s'y trouvent.
+3. **Zone d'entrée** : OB Kasper en M10 ou M5, intact, dans le sens de la 1h.
+4. **Confirmation** : cassure de structure en M1 dans la zone M5/M10. L'entrée se fait au retour dans le petit OB ou l'imbalance M1.
+
+Meilleures fenêtres : 9 h – 11 h 30 (Londres) et 14 h 30 – 17 h (New York).
+
 
 Objectif : trois actifs, les zones proches, un plan par actif, et surtout le
 **pourquoi** de chaque décision, pour apprendre en même temps qu'on trade.
@@ -24,8 +33,8 @@ Les autres indicateurs ne sont lus que s'ils changent la décision.
 
 ## 1. Tableau des plans (une ligne par actif ; week-end : BTCUSD seul)
 
-| Actif | Sens | Zone OB (UT) | Prix / distance | Statut | Confirmation attendue | Entrée | SL | TP1 | TP2 | TP3 | R:R max | Taille (risque 100 $) |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Actif | Sens 1h / 4h | Zone d'intérêt obscanner | Zone d'entrée M10/M5 | Prix / distance | Statut | Confirmation M1 attendue | Entrée | SL | TP1 | TP2 | TP3 | R:R max | Taille (risque 100 $) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | EURUSD | Vente | 1,13250 – 1,13404 (4h) | 1,12423 / +0,7 % | À surveiller | Cassure baissière M5/M10 | à la confirmation | 1,13517 | ≈ 1,12716 | ≈ 1,12449 | 1,11620 | 1:6 (provisoire) | ≈ 0,37 lot (provisoire) |
 
 R:R et taille sont **provisoires** avant la confirmation (entrée supposée au bord proche de la zone), puis recalculés avec la vraie entrée. Taille = 100 $ ÷ distance entrée-SL ; en BTC pour BTCUSD, en lots pour EURUSD (1 lot = 100 000 unités) et XAUUSD (1 lot = 100 onces).
