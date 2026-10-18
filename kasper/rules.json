@@ -9,11 +9,6 @@
   "default_timeframe": "240",
   "bias_criteria": {
     "strategie": "OB obscanner (4h, 1h, daily) + confirmation petites unites (M1, M5, M10, via data_get_pine_boxes sur OB Kasper Mentorat V1.5 no-cooldown)",
-    "lecture_du_contexte": [
-      "Tendance daily et 4h : derniers hauts et bas, derniere cassure de structure",
-      "Momentum (KTA Momentum) : accelere, ralentit, diverge",
-      "Ou est la liquidite (Zones Liquidites) : au-dessus de quel haut, sous quel bas"
-    ],
     "confirmation_requise_au_moins_une": [
       "cassure de structure dans le sens du trade",
       "imbalance (FVG) laissee derriere le prix",
@@ -42,7 +37,32 @@
       "4. Entree sur le retour dans le petit OB ou l imbalance laisse par la confirmation",
       "5. Si la zone est traversee sans confirmation, le plan est annule"
     ],
-    "entree": "apres confirmation : retour dans le petit OB ou l imbalance (FVG) laisse par le mouvement de confirmation, a l interieur ou au bord de la zone OB"
+    "entree": "apres confirmation : retour dans le petit OB ou l imbalance (FVG) laisse par le mouvement de confirmation, a l interieur ou au bord de la zone OB",
+    "principe": "Ne lire que ce qui sert a decider le trade. Pas d indicateur pour l indicateur. Chaque donnee lue doit repondre a une des 4 questions ci-dessous, sinon on ne la lit pas.",
+    "questions_de_decision": [
+      {
+        "question": "1. Ou sont les zones ?",
+        "donnee": "zones OB obscanner 4h, 1h, daily + prix actuel",
+        "sert_a": "distance au prix, zone intacte ou deja touchee"
+      },
+      {
+        "question": "2. Dans quel sens ?",
+        "donnee": "structure daily et 4h (derniers hauts/bas, derniere cassure), lue sur les bougies",
+        "sert_a": "ne garder que les zones dans le sens de la structure"
+      },
+      {
+        "question": "3. La confirmation est-elle la ?",
+        "donnee": "OB Kasper en M1/M5/M10 (data_get_pine_boxes), Imbalance, Zones Liquidites",
+        "sert_a": "declencher ou non l entree ; lu SEULEMENT si le prix est dans ou tout pres d une zone",
+        "condition": "prix a moins de 0,3 % de la zone ou dedans"
+      },
+      {
+        "question": "4. Jusqu ou ?",
+        "donnee": "prochaine zone OB opposee (obscanner) et liquidite visible",
+        "sert_a": "TP3 et realisme des TP"
+      }
+    ],
+    "a_ne_pas_lire": "Ultimate Kasper, KTA Momentum et tout autre indicateur ne sont lus que s ils changent la decision ; morning_brief (qui lit toutes les valeurs d indicateurs) n est pas utilise pour les points horaires."
   },
   "risk_rules": {
     "mode": "analyse_seule",
@@ -109,5 +129,9 @@
       "Annule (zone cassee ou deja consommee)"
     ],
     "sous_le_tableau": "pour chaque actif, l explication du trade en quelques phrases : pourquoi cette zone, pourquoi ce sens, quelle confirmation attendre, pourquoi ce stop, pourquoi ces TP, ce qui ferait renoncer"
+  },
+  "economie": {
+    "brief_matin": "questions 1, 2 et 4 pour les 3 actifs ; question 3 seulement pour un actif dont le prix est deja pres d une zone",
+    "point_horaire": "prix actuel + statut des zones deja retenues le matin ; question 3 seulement si une zone est atteinte ; si rien n a change, une ligne : rien a signaler"
   }
 }

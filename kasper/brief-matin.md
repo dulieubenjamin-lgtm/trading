@@ -4,6 +4,19 @@ Objectif : trois actifs, les zones proches, un plan par actif, et surtout le
 **pourquoi** de chaque décision, pour apprendre en même temps qu'on trade.
 Rien n'est exécuté : analyse, dessins sur le graphique, alertes.
 
+## Principe : ne lire que ce qui sert à décider
+
+Chaque donnée lue répond à une de ces quatre questions, sinon on ne la lit pas :
+
+| Question | Donnée lue | À quoi elle sert |
+|---|---|---|
+| Où sont les zones ? | Zones OB obscanner 4h, 1h, daily + prix | Distance, zone intacte ou touchée |
+| Dans quel sens ? | Structure daily et 4h (hauts, bas, dernière cassure) | Garder les zones dans le sens de la structure |
+| La confirmation est-elle là ? | OB Kasper M1/M5/M10, Imbalance, Liquidité | Déclencher l'entrée. Lu seulement si le prix est dans la zone ou à moins de 0,3 % |
+| Jusqu'où ? | Prochaine zone OB opposée, liquidité visible | TP3 et réalisme des cibles |
+
+Les autres indicateurs ne sont lus que s'ils changent la décision.
+
 ## 0. État du montage
 - tv_health_check : OK / KO (symbole affiché, port 9222)
 - obscanner : OK / KO (heure de la dernière mise à jour)
