@@ -33,7 +33,7 @@ Les autres indicateurs ne sont lus que s'ils changent la décision.
 
 ## 1. Tableau des plans (une ligne par actif ; week-end : BTCUSD seul)
 
-| Actif | Sens 1h / 4h | Zone d'intérêt obscanner | Zone d'entrée M10/M5 | Prix / distance | Statut | Confirmation M1 attendue | Entrée | SL | TP1 | TP2 | TP3 | R:R max | Taille (risque 100 $) |
+| Actif | Sens 1h / 4h | Zone d'intérêt obscanner | Zone d'entrée M10/M5 | Prix / distance | Statut | Confirmation M1 attendue | Entrée | SL | TP1 | TP2 | TP3 | R:R max | Risque $ à 0,01 / 0,02 lot |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | EURUSD | Vente | 1,13250 – 1,13404 (4h) | 1,12423 / +0,7 % | À surveiller | Cassure baissière M5/M10 | à la confirmation | 1,13517 | ≈ 1,12716 | ≈ 1,12449 | 1,11620 | 1:6 (provisoire) | ≈ 0,37 lot (provisoire) |
 
