@@ -24,9 +24,11 @@ Les autres indicateurs ne sont lus que s'ils changent la décision.
 
 ## 1. Tableau des plans (une ligne par actif ; week-end : BTCUSD seul)
 
-| Actif | Sens | Zone OB (UT) | Prix / distance | Statut | Confirmation attendue | Entrée | SL | TP1 | TP2 | TP3 | R:R |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| XAUUSD | Achat | 4 160 – 4 171 (4h) | 4 190 / 0,5 % | À surveiller | Cassure de structure haussière M5 | après confirmation | 4 155 | 1:2 | 1:3 | zone 4 230 | 1:3,5 |
+| Actif | Sens | Zone OB (UT) | Prix / distance | Statut | Confirmation attendue | Entrée | SL | TP1 | TP2 | TP3 | R:R max | Taille (risque 100 $) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| EURUSD | Vente | 1,13250 – 1,13404 (4h) | 1,12423 / +0,7 % | À surveiller | Cassure baissière M5/M10 | à la confirmation | 1,13517 | ≈ 1,12716 | ≈ 1,12449 | 1,11620 | 1:6 (provisoire) | ≈ 0,37 lot (provisoire) |
+
+R:R et taille sont **provisoires** avant la confirmation (entrée supposée au bord proche de la zone), puis recalculés avec la vraie entrée. Taille = 100 $ ÷ distance entrée-SL ; en BTC pour BTCUSD, en lots pour EURUSD (1 lot = 100 000 unités) et XAUUSD (1 lot = 100 onces).
 
 Statuts possibles :
 - **En attente** : zone à plus de 1 % du prix, on ne fait rien.

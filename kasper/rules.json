@@ -111,7 +111,7 @@
       "Actif",
       "Sens",
       "Zone OB (UT)",
-      "Prix actuel / distance",
+      "Prix / distance",
       "Statut",
       "Confirmation attendue",
       "Entree",
@@ -119,7 +119,8 @@
       "TP1",
       "TP2",
       "TP3",
-      "R:R"
+      "R:R max",
+      "Taille (risque 100 $)"
     ],
     "statuts": [
       "En attente (zone loin)",
@@ -128,7 +129,8 @@
       "Confirme, entree possible",
       "Annule (zone cassee ou deja consommee)"
     ],
-    "sous_le_tableau": "pour chaque actif, l explication du trade en quelques phrases : pourquoi cette zone, pourquoi ce sens, quelle confirmation attendre, pourquoi ce stop, pourquoi ces TP, ce qui ferait renoncer"
+    "sous_le_tableau": "pour chaque actif, l explication du trade en quelques phrases : pourquoi cette zone, pourquoi ce sens, quelle confirmation attendre, pourquoi ce stop, pourquoi ces TP, ce qui ferait renoncer",
+    "calculs": "R:R max = distance entree-TP le plus loin realiste / distance entree-SL. Taille = 1 % du capital (100 $) / distance entree-SL : en BTC pour BTCUSD, en lots pour EURUSD (1 lot = 100 000 unites) et en onces/lots pour XAUUSD (1 lot = 100 onces). Avant confirmation, R:R et taille sont PROVISOIRES, calcules avec une entree au bord proche de la zone, et marques comme tels ; a la confirmation, recalcul avec la vraie entree."
   },
   "economie": {
     "brief_matin": "questions 1, 2 et 4 pour les 3 actifs ; question 3 seulement pour un actif dont le prix est deja pres d une zone",
