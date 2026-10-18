@@ -1,7 +1,11 @@
 {
   "_commentaire": "Regles de Benjamin, au format lu par morning_brief (src/core/morning.js) : watchlist, default_timeframe, bias_criteria, risk_rules, notes. A copier dans ~/claudeverstradingview/rules.json. Aucun ordre reel : analyse, dessins et alertes seulement.",
   "version": "2026-10-18",
-  "watchlist": ["XAUUSD", "BTCUSD", "EURUSD"],
+  "watchlist": [
+    "XAUUSD",
+    "BTCUSD",
+    "EURUSD"
+  ],
   "default_timeframe": "240",
   "bias_criteria": {
     "strategie": "OB obscanner (4h, 1h, daily) + confirmation petites unites (M1, M5, M10, via data_get_pine_boxes sur OB Kasper Mentorat V1.5 no-cooldown)",
@@ -15,25 +19,37 @@
       "imbalance (FVG) laissee derriere le prix",
       "prise de liquidite juste avant la zone"
     ],
-    "zone_trop_loin_pct": 1.0,
+    "zone_trop_loin_pct": 1,
     "zone_deja_touchee": "signaler, ne pas proposer de plan",
-    "entree": "bord proche de la zone",
-    "stop": "au-dela du bord lointain, marge 0,1 %",
-    "tp": { "tp1": "ratio 1:2", "tp2": "ratio 1:3", "tp3": "prochaine zone opposee si elle arrive avant" },
+    "stop": "au-dela du bord lointain de la zone OB, marge 0,1 % (ou au-dela du point bas/haut de la confirmation s il est plus loin)",
+    "tp": {
+      "tp1": "ratio 1:2 depuis l entree confirmee",
+      "tp2": "ratio 1:3",
+      "tp3": "prochaine zone OB opposee si elle existe, sinon pas de TP3"
+    },
     "pedagogie_obligatoire": [
       "pourquoi cette zone (quel mouvement l'a creee)",
       "pourquoi ce sens (structure, momentum, liquidite)",
       "pourquoi ce stop (le scenario qui invalide)",
       "pourquoi ces TP (ratio ou zone opposee)",
       "ce qui ferait renoncer au trade"
-    ]
+    ],
+    "declencheur": "La CONFIRMATION dans le sens du trade declenche le trade, jamais le simple contact avec la zone OB. Prix dans la zone = on regarde ; confirmation = on entre ; pas de confirmation = pas de trade.",
+    "sequence": [
+      "1. Zone OB obscanner (4h, 1h ou daily) intacte et a moins de 1 % du prix",
+      "2. Le prix entre dans la zone : alerte, on surveille les petites unites",
+      "3. Confirmation sur M1/M5/M10 dans le sens du trade (au moins une des confirmations listees)",
+      "4. Entree sur le retour dans le petit OB ou l imbalance laisse par la confirmation",
+      "5. Si la zone est traversee sans confirmation, le plan est annule"
+    ],
+    "entree": "apres confirmation : retour dans le petit OB ou l imbalance (FVG) laisse par le mouvement de confirmation, a l interieur ou au bord de la zone OB"
   },
   "risk_rules": {
     "mode": "analyse_seule",
     "capital_reference_usd": 10000,
-    "par_trade_pct": 1.0,
+    "par_trade_pct": 1,
     "max_trades_jour": 3,
-    "stop_journalier_pct": -2.0,
+    "stop_journalier_pct": -2,
     "taille_position": "se deduit de la distance au stop, jamais l'inverse",
     "horaires_paris": {
       "brief_matin": "08:00",
@@ -45,8 +61,13 @@
     },
     "alertes": {
       "par_actif_max": 1,
-      "niveau": "entree",
-      "rappeler_avec_l_alerte": ["SL", "TP1", "TP2", "TP3 si zone opposee"],
+      "niveau": "bord proche de la zone OB : signifie zone atteinte, chercher la confirmation ; ce n est PAS un signal d entree",
+      "rappeler_avec_l_alerte": [
+        "SL",
+        "TP1",
+        "TP2",
+        "TP3 si zone opposee"
+      ],
       "methode": "ui_keyboard Alt+A, choisir la ligne du symbole dans Condition (pas un indicateur), verifier avec alert_list",
       "expiration": "23:59 le jour meme : proposer le renouvellement au brief du matin",
       "canal": "notification TradingView telephone + ordinateur"
@@ -63,5 +84,30 @@
       "Ne jamais afficher ni partager un token."
     ]
   },
-  "notes": "Benjamin n'est pas developpeur : instructions simples, etape par etape, avec verification. Le brief suit kasper/brief-matin.md du depot trading. Libelles des symboles dans le menu Condition des alertes : Gold Spot / U.S. Dollar, Bitcoin / U.S. Dollar, Euro / U.S. Dollar."
+  "notes": "Benjamin n'est pas developpeur : instructions simples, etape par etape, avec verification. Le brief suit kasper/brief-matin.md du depot trading. Libelles des symboles dans le menu Condition des alertes : Gold Spot / U.S. Dollar, Bitcoin / U.S. Dollar, Euro / U.S. Dollar.",
+  "format_du_brief": {
+    "type": "tableau",
+    "colonnes": [
+      "Actif",
+      "Sens",
+      "Zone OB (UT)",
+      "Prix actuel / distance",
+      "Statut",
+      "Confirmation attendue",
+      "Entree",
+      "SL",
+      "TP1",
+      "TP2",
+      "TP3",
+      "R:R"
+    ],
+    "statuts": [
+      "En attente (zone loin)",
+      "A surveiller (zone proche)",
+      "Zone touchee, attente confirmation",
+      "Confirme, entree possible",
+      "Annule (zone cassee ou deja consommee)"
+    ],
+    "sous_le_tableau": "pour chaque actif, l explication du trade en quelques phrases : pourquoi cette zone, pourquoi ce sens, quelle confirmation attendre, pourquoi ce stop, pourquoi ces TP, ce qui ferait renoncer"
+  }
 }

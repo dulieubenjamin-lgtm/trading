@@ -9,38 +9,32 @@ Rien n'est exécuté : analyse, dessins sur le graphique, alertes.
 - obscanner : OK / KO (heure de la dernière mise à jour)
 - Alertes de la veille : expirées à 23 h 59, liste à renouveler
 
-## 1. Pour chaque actif (XAUUSD, BTCUSD, EURUSD ; week-end : BTCUSD seul)
+## 1. Tableau des plans (une ligne par actif ; week-end : BTCUSD seul)
 
-### Contexte (la lecture d'ensemble)
-- Tendance daily et 4h : haussière / baissière / en range, et ce qui le montre
-  (derniers hauts et bas, dernière cassure de structure).
-- Momentum (KTA Momentum) : accélère, ralentit, diverge.
-- Où est la liquidité (Zones Liquidités) : au-dessus de quel haut, sous quel bas.
+| Actif | Sens | Zone OB (UT) | Prix / distance | Statut | Confirmation attendue | Entrée | SL | TP1 | TP2 | TP3 | R:R |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| XAUUSD | Achat | 4 160 – 4 171 (4h) | 4 190 / 0,5 % | À surveiller | Cassure de structure haussière M5 | après confirmation | 4 155 | 1:2 | 1:3 | zone 4 230 | 1:3,5 |
 
-### Les 3 zones les plus proches du prix (obscanner 4h / 1h / daily)
-| Zone | Sens | Haut | Bas | Distance au prix | Touchée ? |
-|---|---|---|---|---|---|
+Statuts possibles :
+- **En attente** : zone à plus de 1 % du prix, on ne fait rien.
+- **À surveiller** : zone proche, l'alerte est posée sur son bord.
+- **Zone touchée, attente confirmation** : le prix est dans la zone, on regarde M1/M5/M10.
+- **Confirmé, entrée possible** : la confirmation est là, l'entrée se fait au retour dans le petit OB ou l'imbalance.
+- **Annulé** : zone traversée sans confirmation, ou déjà consommée.
 
-Règles d'écartement :
-- plus de 1 % du prix : « trop loin, on attend »
-- déjà touchée : « consommée, pas de plan dessus »
+**Règle d'or : le contact avec la zone ne déclenche rien. Seule la confirmation dans le sens du trade déclenche l'entrée.**
 
-### Confirmation petites unités (OB Kasper, M1 / M5 / M10)
-- Y a-t-il une structure, une imbalance ou une prise de liquidité qui va dans le
-  sens de la zone ? Si rien : pas de trade, on note pourquoi.
+L'entrée et la taille ne sont chiffrées qu'une fois la confirmation apparue, parce que c'est elle qui donne le point d'entrée exact. Avant, le tableau donne la zone, le SL prévu et les cibles.
 
-### Le plan (si une zone passe les filtres)
-- Entrée : bord proche de la zone
-- SL : au-delà du bord lointain + 0,1 %
-- TP1 : 1:2 · TP2 : 1:3 · TP3 : prochaine zone opposée si elle arrive avant
-- Taille : 1 % du capital ÷ distance au stop
+## Sous le tableau : l'explication de chaque trade
 
-### Le pourquoi (obligatoire, c'est la partie pédagogique)
-1. Pourquoi cette zone : quel mouvement l'a créée, pourquoi le marché peut y revenir.
-2. Pourquoi ce sens : ce que disent la structure et le momentum.
-3. Pourquoi ce stop : le scénario précis qui invalide l'idée.
-4. Pourquoi ces TP : ratio ou zone opposée, et laquelle est la plus réaliste.
-5. Ce qui ferait renoncer : news, bougie de rejet, zone cassée avant l'entrée.
+Pour chaque actif, en quelques phrases simples :
+1. **Pourquoi cette zone** : quel mouvement l'a créée, pourquoi le prix peut y réagir.
+2. **Pourquoi ce sens** : ce que disent la tendance daily/4h, le momentum (KTA) et la liquidité.
+3. **Quelle confirmation attendre** : ce qu'on veut voir sur M1/M5/M10, et à quoi ça ressemble.
+4. **Pourquoi ce stop** : le scénario précis qui invalide l'idée.
+5. **Pourquoi ces TP** : ratio ou zone opposée, et laquelle est la plus réaliste.
+6. **Ce qui ferait renoncer** : news, zone traversée d'un coup, bougie de rejet dans le mauvais sens.
 
 ## 2. Dessins posés sur TradingView
 - Rectangles : rouge (zone vendeuse), vert (zone acheteuse)
@@ -48,7 +42,8 @@ Règles d'écartement :
 - Jamais de draw_clear.
 
 ## 3. Alertes
-- Une par actif, sur l'entrée, vérifiée par alert_list.
+- Une par actif, sur le bord proche de la zone OB : elle veut dire « zone atteinte, va chercher la confirmation », pas « entre ».
+- Vérifiée par alert_list.
 - Avec chaque alerte, rappeler SL, TP1, TP2, TP3.
 
 ## 4. Limites du jour
